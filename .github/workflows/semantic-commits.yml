@@ -1,0 +1,35 @@
+name: Semantic Commits
+
+# Validates conventional-commit prefixes on PR titles. We use a small custom
+# bash check instead of amannn/action-semantic-pull-request because that
+# action requires the type at position 0 — we want to tolerate optional
+# ALL-CAPS marker words like "URGENT:" or "WIP:" for visibility on hot fixes.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Accept an optional ALL-CAPS marker like "URGENT:" or "WIP:" before
+          # the conventional-commit type. Type list mirrors the previous
+          # amannn/action-semantic-pull-request config.
+          # Pattern is stored in a variable because bash =~ doesn't accept
+          # literal parens inside the conditional expression — only via a
+          # variable expansion.
+          pattern='^([A-Z]{2,}:[[:space:]]*)?(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?:[[:space:]]+.+'
+          if [[ "$PR_TITLE" =~ $pattern ]]; then
+            echo "OK: $PR_TITLE"
+          else
+            echo "::error::PR title must start with a conventional-commit type (feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert), optionally preceded by an ALL-CAPS marker like 'URGENT:'. Got: $PR_TITLE"
+            exit 1
+          fi

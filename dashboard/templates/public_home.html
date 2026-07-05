@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROVIMEN — Meteor Camera Network</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<style>
+/* :root tokens (--bg, --card, --border, --text, --muted, --green, --blue)
+   come from dashboard.css. The public landing page is deliberately simple
+   and static — no station data is rendered server-side; the only dynamic
+   content is which nav links appear, driven by public_pages. */
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+.home-box{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:40px 44px;width:520px;max-width:100%}
+.home-logo{font-size:22px;font-weight:700;color:var(--blue);letter-spacing:2px;
+  text-align:center;margin-bottom:6px}
+.home-subtitle{font-size:11px;color:var(--muted);text-align:center;margin-bottom:20px;
+  text-transform:uppercase;letter-spacing:1px}
+.home-intro{font-size:13px;color:var(--text);line-height:1.6;text-align:center;
+  margin-bottom:26px}
+.home-nav{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.home-link{display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:14px 16px;color:var(--text);text-decoration:none;font-size:14px;
+  font-weight:600;transition:border-color .15s,background .15s}
+.home-link:hover{border-color:var(--blue);background:rgba(88,166,255,.08)}
+.home-link .arrow{color:var(--muted);font-size:16px}
+.home-empty{font-size:12px;color:var(--muted);text-align:center;
+  border:1px dashed var(--border);border-radius:8px;padding:18px;margin-bottom:24px}
+.home-footer{text-align:center;font-size:11px;color:var(--muted);
+  border-top:1px solid var(--border);padding-top:16px}
+.home-footer a{color:var(--blue);text-decoration:none}
+.home-footer a:hover{text-decoration:underline}
+@media(max-width:540px){
+  .home-box{padding:28px 20px}
+  .home-link{padding:16px;min-height:44px}
+}
+</style>
+</head>
+<body>
+<main class="home-box">
+  <div class="home-logo">ROVIMEN</div>
+  <div class="home-subtitle">Global Meteor Network</div>
+  <p class="home-intro">
+    A network of all-sky cameras across Romania and Germany, watching the
+    night sky for meteors and fireballs as part of the Global Meteor Network.
+    Explore the public data below.
+  </p>
+
+  {% if enabled_pages %}
+  <nav class="home-nav">
+    {% for page in enabled_pages %}
+    <a class="home-link" href="{{ page.url }}">
+      <span>{{ page.label }}</span><span class="arrow">&rarr;</span>
+    </a>
+    {% endfor %}
+  </nav>
+  {% else %}
+  <div class="home-empty">
+    Public pages are currently unavailable. Please check back later.
+  </div>
+  {% endif %}
+
+  <div class="home-footer">
+    Operator? <a href="/login">Sign in</a>
+  </div>
+</main>
+</body>
+</html>

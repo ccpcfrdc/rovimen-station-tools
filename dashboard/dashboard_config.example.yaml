@@ -1,0 +1,79 @@
+# ---------------------------------------------------------------------------
+# ROVIMEN dashboard -- EXAMPLE configuration.
+#
+# Copy this to `dashboard_config.yaml` and edit it for your own network.
+# The live `dashboard_config.yaml` is gitignored -- never commit real IPs,
+# SSH users, or camera credentials.
+#
+# The dashboard is a config-driven proxy: it reads station metadata from this
+# file and proxies data requests to each station's REST API. Add a station by
+# adding one entry under `stations:`. See docs/public_api.md.
+# ---------------------------------------------------------------------------
+
+# Time window (seconds) for correlating detections across stations into events.
+correlation_window_s: 1
+
+# Port each station's REST API (rovimen_station_api.py) listens on.
+station_api_port: 7779
+
+# Pages anonymous (not-logged-in) visitors may reach. Remove a key to re-gate
+# it behind login. Eligible: overview, station, events, live, showers.
+public_pages:
+- overview
+- station
+- events
+- live
+- showers
+
+# Optional: a subset of YOUR camera codes to treat as a muted "secondary"
+# overlay on the meteor map. Events seen ONLY by these stations render dimmed;
+# events with >=1 non-highlight station are the headline set. Leave empty (the
+# default) for a single, undifferentiated set of your stations.
+highlight_codes: []
+
+stations:
+  # --- A fully-active station with two cameras --------------------------------
+  station01:
+    label: Example Station One
+    location_name: Example City
+    lat: 45.0                     # decimal degrees
+    lon: 25.0
+    ip: 100.64.0.1                # station's Tailscale (or reachable LAN) IP
+    ssh_user: youruser            # user the dashboard/VPS SSHes/tunnels as
+    jump_hosts: []                # e.g. [gmn@100.64.0.9] for cross-tailnet hops
+    proxy_media: false
+    public: true                  # false = hidden from the public surface
+    show_on_map: true
+    status: active                # active | commissioning
+    public_tabs:
+    - archive
+    - videodb
+    - timelapse
+    cameras:
+    - code: XX0001                # your GMN camera code
+      cam_ip: 192.168.1.10        # camera LAN IP (behind the station)
+      label: N                    # compass label shown in the UI
+      rotate: false
+      rtsp_url: rtsp://user:pass@192.168.1.10:554/stream
+    - code: XX0002
+      cam_ip: 192.168.1.11
+      label: SE
+      rotate: false
+      rtsp_url: rtsp://user:pass@192.168.1.11:554/stream
+
+  # --- A commissioning station with no cameras yet ----------------------------
+  station02:
+    label: Example Station Two
+    location_name: Another Town
+    lat: 46.0
+    lon: 26.0
+    ip: 100.64.0.2
+    ssh_user: youruser
+    jump_hosts: []
+    proxy_media: false
+    public: true
+    show_on_map: true
+    status: commissioning
+    public_tabs:
+    - archive
+    cameras: []

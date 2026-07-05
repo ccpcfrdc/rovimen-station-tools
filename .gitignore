@@ -1,0 +1,55 @@
+# ── Live configuration & secrets (NEVER commit) ───────────────────────────
+# The dashboard reads its real station registry from dashboard_config.yaml.
+# Only the .example is tracked. Same for anything holding credentials.
+dashboard/dashboard_config.yaml
+dashboard/api_keys.yaml
+dashboard/users.yaml
+dashboard/users.lock
+dashboard/watchdog_config.yaml
+dashboard/secret.key
+nightly_summary/config.py
+
+# SSH private keys must never be tracked (public *.pub would be fine, but this
+# public repo ships none).
+ssh_keys/
+*_id_rsa
+*_id_ed25519
+*_id_ecdsa
+*.pem
+
+# Tailscale / cloud state
+*.tsstate
+
+# ── Runtime data & caches ──────────────────────────────────────────────────
+nightly_data/
+downloads/
+sample_clips/
+monitoring_plots/
+plots_review/
+detections.db*
+gmn_cache/
+thumb_cache/
+logs/
+*.log
+
+# ── Python ─────────────────────────────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+wheels/
+
+# ── Node / JS ──────────────────────────────────────────────────────────────
+node_modules/
+.eslint-tmp/
+
+# ── Editors / OS ────────────────────────────────────────────────────────────
+.DS_Store
+*.swp
+*.sync-conflict-*
+
+# Celestial dome fleet registry (describes your own stations)
+celestial_dome_stations.json

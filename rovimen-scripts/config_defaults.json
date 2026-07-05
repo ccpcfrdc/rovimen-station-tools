@@ -1,0 +1,81 @@
+{
+  "stations": {},
+  "videocapture_path": null,
+  "log_path": null,
+  "vps_host": "CHANGE_ME.example.net",
+  "update_channel": "main",
+  "services": {
+    "stacker": {
+      "enabled": true,
+      "realtime": true,
+      "nice": 10,
+      "cpu_quota": 50
+    },
+    "detection_lock": {
+      "enabled": true
+    },
+    "archive_upload": {
+      "enabled": false
+    },
+    "timelapse_build": {
+      "enabled": true
+    },
+    "reencode": {
+      "enabled": true
+    }
+  },
+  "segment_duration": 20,
+  "rtsp_capture_delay_s": 6,
+  "ff_idle_timeout_minutes": 30,
+  "min_disk_gb_free": 10,
+  "compression_level": 2,
+  "encode_workers": 1,
+  "retention": {
+    "color_days": 2,
+    "locked_days": 7,
+    "stacks_days": 7,
+    "timelapse_days": 7
+  },
+  "disk": {
+    "warn_pct": 85,
+    "nuclear_pct": 90,
+    "extreme_pct": 95
+  },
+  "detection": {
+    "pre_seconds": 3,
+    "post_seconds": 12
+  },
+  "archive": {
+    "enabled": false,
+    "host": "CHANGE_ME.example.net",
+    "port": 22,
+    "base_path": "/srv/rovimen/archive",
+    "upload_meteors": true,
+    "upload_timelapses": true,
+    "upload_stacks": true,
+    "interval_minutes": 20
+  },
+  "display_levels": {
+    "background_subtract_pct": null,
+    "contrast": null,
+    "brightness": null
+  },
+  "overlay": {
+    "enabled": true,
+    "style": "cinema",
+    "font": null,
+    "logo": null,
+    "font_size": 19,
+    "network": "ROVIMEN",
+    "coords": "",
+    "text_opacity": 0.8,
+    "logo_opacity": 0.8,
+    "logo_size": 0,
+    "show_logo": true,
+    "show_network": true,
+    "show_timestamp": true,
+    "show_station": true,
+    "show_coords": true,
+    "show_pointing": true
+  }
+}

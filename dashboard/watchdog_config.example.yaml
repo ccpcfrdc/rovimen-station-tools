@@ -1,0 +1,20 @@
+# Copy this file to watchdog_config.yaml and fill in your Discord webhook URL.
+# watchdog_config.yaml is gitignored to keep the webhook URL out of the repo.
+
+discord_webhook_url: ""
+
+poll_interval_s: 300
+
+thresholds:
+  disk_warn_pct: 85
+  disk_critical_pct: 95
+  janitor_stale_hours: 26
+  dawn_deadline_utc: "12:00"
+
+cooldowns:
+  repeat_alert_minutes: 120
+  resolve_delay_polls: 2
+
+dawn_check_window_utc:
+  start: "08:00"
+  end: "14:00"

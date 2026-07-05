@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ROVIMEN — Raport Social Media</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-overview.css', v=build_version) }}">
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js": "{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard-social.js', v=build_version) }}"></script>
+<style>
+.soc-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+.soc-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 1.6rem;
+}
+.soc-week-nav {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin-bottom: 1.4rem;
+  flex-wrap: wrap;
+}
+.soc-week-nav button {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: .35rem .85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: .82rem;
+  font-family: inherit;
+  transition: border-color .15s, color .15s;
+}
+.soc-week-nav button:hover { border-color: var(--blue); color: var(--blue); }
+.soc-week-nav button:disabled { opacity: .45; cursor: default; border-color: var(--border); color: var(--muted); }
+.soc-week-label {
+  font-size: .88rem;
+  color: var(--muted);
+  min-width: 180px;
+  text-align: center;
+}
+.soc-generate {
+  background: var(--blue);
+  color: #000;
+  border: none;
+  padding: .38rem 1.1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: .83rem;
+  font-weight: 600;
+  font-family: inherit;
+  margin-left: auto;
+  transition: opacity .15s;
+}
+.soc-generate:disabled { opacity: .5; cursor: default; }
+.soc-body {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (max-width: 660px) {
+  .soc-body { grid-template-columns: 1fr; }
+  .soc-generate { margin-left: 0; }
+}
+.soc-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 440px;
+  resize: vertical;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: monospace;
+  font-size: .82rem;
+  line-height: 1.7;
+  padding: 1rem;
+  outline: none;
+  transition: border-color .15s;
+}
+.soc-textarea:focus { border-color: var(--blue); }
+.soc-actions {
+  display: flex;
+  gap: .55rem;
+  margin-top: .75rem;
+  flex-wrap: wrap;
+}
+.soc-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: .36rem .9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: .82rem;
+  font-family: inherit;
+  transition: border-color .15s, color .15s;
+}
+.soc-btn:hover { border-color: var(--blue); color: var(--blue); }
+.soc-btn-primary { border-color: var(--blue); color: var(--blue); }
+.soc-status {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: .55rem;
+  min-height: 1.2em;
+}
+.soc-status.error { color: var(--red); }
+.soc-sidebar {}
+.soc-image-wrap {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--card);
+  aspect-ratio: 4/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.soc-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.soc-image-placeholder {
+  font-size: .78rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 1rem;
+  line-height: 1.5;
+}
+.soc-metrics {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.soc-metric {
+  display: flex;
+  justify-content: space-between;
+  font-size: .78rem;
+  padding: .38rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.soc-metric:last-child { border-bottom: none; }
+.soc-metric-label { color: var(--muted); }
+.soc-metric-value { color: var(--text); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="ov-header">
+  <a href="/" class="nav-logo">ROVIMEN</a>
+  <nav class="main-nav">
+    <a href="/" class="nav-tab">Stations</a>
+    <a href="/events" class="nav-tab">Detections</a>
+    <a href="/highlights" class="nav-tab">Highlights</a>
+    <a href="/showers" class="nav-tab">Showers</a>
+    <a href="/social" class="nav-tab active">Social</a>
+    <a href="/admin" class="nav-tab nav-tab-admin" id="logo-dd-admin" style="display:none">Admin</a>
+  </nav>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <span id="utc-clock" class="hdr-clock"></span>
+    <div id="ov-auth"></div>
+  </div>
+</div>
+
+<div class="soc-wrap">
+  <p class="soc-heading">Raport Social Media</p>
+
+  <div class="soc-week-nav">
+    <button id="soc-prev">&#8592; Săptămâna anterioară</button>
+    <span class="soc-week-label" id="soc-week-label">—</span>
+    <button id="soc-next" disabled>Săptămâna următoare &#8594;</button>
+    <button class="soc-generate" id="soc-generate">Generează</button>
+  </div>
+
+  <div class="soc-body">
+    <div>
+      <textarea class="soc-textarea" id="soc-text" spellcheck="false"
+        placeholder="Apasă Generează pentru a pre-completa raportul săptămânal..."></textarea>
+      <div class="soc-actions">
+        <button class="soc-btn soc-btn-primary" id="soc-copy">Copiază text</button>
+        <button class="soc-btn" id="soc-download-zip">Descarcă ZIP</button>
+      </div>
+      <p class="soc-status" id="soc-status"></p>
+    </div>
+
+    <div class="soc-sidebar">
+      <div class="soc-image-wrap" id="soc-image-wrap">
+        <p class="soc-image-placeholder" id="soc-image-placeholder">Imaginea highlight-ului va apărea după generare.</p>
+        <img id="soc-image" style="display:none" alt="Highlight meteor stack">
+      </div>
+
+      <div class="soc-metrics" id="soc-metrics" style="display:none">
+        <div class="soc-metric">
+          <span class="soc-metric-label">Detecții totale</span>
+          <span class="soc-metric-value" id="m-detections">—</span>
+        </div>
+        <div class="soc-metric">
+          <span class="soc-metric-label">Multi-stație</span>
+          <span class="soc-metric-value" id="m-multistation">—</span>
+        </div>
+        <div class="soc-metric">
+          <span class="soc-metric-label">Nopți senine</span>
+          <span class="soc-metric-value" id="m-nights">—</span>
+        </div>
+        <div class="soc-metric">
+          <span class="soc-metric-label">Orbite calculate</span>
+          <span class="soc-metric-value" id="m-orbits">—</span>
+        </div>
+        <div class="soc-metric">
+          <span class="soc-metric-label">Stații / camere</span>
+          <span class="soc-metric-value" id="m-stations">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-panel" class="app-panel" onclick="appPanelClose(event)">
+  <div class="app-panel-inner">
+    <div class="app-panel-header">
+      <span id="app-panel-title" class="app-panel-title"></span>
+      <button class="cam-modal-close" onclick="appPanelClose(null)">&#x2715;</button>
+    </div>
+    <div id="app-panel-body"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const MONTHS_RO = ['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
+
+  // weekOffset: 0 = last full Mon–Sun, -1 = the one before, etc.
+  let weekOffset = 0;
+
+  function weekBounds(offset) {
+    const now = new Date();
+    const dow = now.getDay() === 0 ? 7 : now.getDay();
+    const thisMon = new Date(now);
+    thisMon.setDate(now.getDate() - (dow - 1));
+    thisMon.setHours(0, 0, 0, 0);
+    const mon = new Date(thisMon);
+    mon.setDate(thisMon.getDate() + (offset - 1) * 7);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return { start: mon, end: sun };
+  }
+
+  function toISO(d) { return d.toISOString().slice(0, 10); }
+
+  function fmtDate(d) { return `${d.getDate()} ${MONTHS_RO[d.getMonth()]}`; }
+  function fmtBounds(b) { return `${fmtDate(b.start)} – ${fmtDate(b.end)} ${b.end.getFullYear()}`; }
+
+  function updateLabel() {
+    document.getElementById('soc-week-label').textContent = fmtBounds(weekBounds(weekOffset));
+    document.getElementById('soc-next').disabled = weekOffset >= 0;
+  }
+
+  document.getElementById('soc-prev').addEventListener('click', () => { weekOffset--; updateLabel(); });
+  document.getElementById('soc-next').addEventListener('click', () => { if (weekOffset < 0) { weekOffset++; updateLabel(); } });
+
+  updateLabel();
+
+  const btnGenerate  = document.getElementById('soc-generate');
+  const txtArea      = document.getElementById('soc-text');
+  const statusEl     = document.getElementById('soc-status');
+  const metricsEl    = document.getElementById('soc-metrics');
+  const imageEl      = document.getElementById('soc-image');
+  const placeholderEl = document.getElementById('soc-image-placeholder');
+
+  let lastBounds = null;
+
+  function setStatus(msg, isError) {
+    statusEl.textContent = msg;
+    statusEl.className = 'soc-status' + (isError ? ' error' : '');
+  }
+
+  async function generate() {
+    const bounds = weekBounds(weekOffset);
+    lastBounds = bounds;
+    const params = new URLSearchParams({ start: toISO(bounds.start), end: toISO(bounds.end) });
+
+    btnGenerate.disabled = true;
+    btnGenerate.textContent = 'Se generează...';
+    setStatus('Se calculează datele din arhivă. Poate dura 20–30 de secunde...', false);
+
+    try {
+      const resp = await fetch('/api/social/weekly?' + params);
+      if (!resp.ok) throw new Error(`Eroare server ${resp.status}`);
+      const data = await resp.json();
+
+      txtArea.value = data.text;
+
+      const m = data.metrics;
+      document.getElementById('m-detections').textContent   = m.total_detections.toLocaleString('ro-RO');
+      document.getElementById('m-multistation').textContent = m.multistation.toLocaleString('ro-RO');
+      document.getElementById('m-nights').textContent       = `${m.clear_nights} / ${m.total_nights}`;
+      document.getElementById('m-orbits').textContent       = m.total_orbits.toLocaleString('ro-RO');
+      document.getElementById('m-stations').textContent     = `${m.active_stations} stații · ${m.active_cameras} camere`;
+      metricsEl.style.display = '';
+
+      if (data.stack_url) {
+        imageEl.src = data.stack_url;
+        imageEl.style.display = '';
+        placeholderEl.style.display = 'none';
+      } else {
+        imageEl.style.display = 'none';
+        placeholderEl.style.display = '';
+        placeholderEl.textContent = 'Nicio imagine găsită pentru această săptămână.';
+      }
+
+      setStatus('Generat. Textul poate fi editat înainte de postare.', false);
+    } catch (e) {
+      setStatus('Eroare: ' + e.message, true);
+    } finally {
+      btnGenerate.disabled = false;
+      btnGenerate.textContent = 'Generează';
+    }
+  }
+
+  btnGenerate.addEventListener('click', generate);
+
+  document.getElementById('soc-copy').addEventListener('click', async () => {
+    if (!txtArea.value) { setStatus('Generează mai întâi raportul.', true); return; }
+    try {
+      await navigator.clipboard.writeText(txtArea.value);
+      setStatus('Copiat în clipboard.', false);
+    } catch {
+      txtArea.select();
+      document.execCommand('copy');
+      setStatus('Copiat.', false);
+    }
+  });
+
+  document.getElementById('soc-download-zip').addEventListener('click', () => {
+    if (!lastBounds) { setStatus('Generează mai întâi raportul.', true); return; }
+    const params = new URLSearchParams({ start: toISO(lastBounds.start), end: toISO(lastBounds.end) });
+    window.location.href = '/api/social/weekly/zip?' + params;
+  });
+})();
+</script>
+</body>
+</html>

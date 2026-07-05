@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROVIMEN — 2FA</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<style>
+/* :root tokens (--bg, --card, --border, --text, --muted, --green, --red,
+   --blue) come from dashboard.css. Auth-only layout overrides below. */
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+.box{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:32px 36px;width:360px;max-width:100%}
+.logo{font-size:18px;font-weight:700;color:var(--blue);letter-spacing:1.5px;
+  text-align:center;margin-bottom:6px}
+.subtitle{font-size:11px;color:var(--muted);text-align:center;margin-bottom:22px;
+  text-transform:uppercase;letter-spacing:1px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;text-transform:uppercase;
+  letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);font-family:inherit;font-size:22px;letter-spacing:8px;
+  padding:12px;border-radius:6px;text-align:center;box-sizing:border-box}
+.field input:focus{outline:none;border-color:var(--blue)}
+.btn{width:100%;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);
+  color:var(--blue);font-family:inherit;font-size:13px;font-weight:600;padding:10px;
+  border-radius:6px;cursor:pointer;letter-spacing:.5px;margin-top:6px}
+.btn:hover{background:rgba(88,166,255,.22)}
+.error{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.25);
+  border-radius:6px;padding:10px;color:var(--red);font-size:12px;text-align:center;
+  margin-bottom:14px}
+/* Phone: shrink the wide letter-spacing so 6-digit code stays on one
+   line, tighten box padding so the form fits a 375 px viewport. */
+@media(max-width:540px){
+  .box{padding:24px 18px;border-radius:12px}
+  .field input{letter-spacing:6px;font-size:22px;padding:14px;min-height:54px}
+  .btn{font-size:14px;padding:14px;min-height:44px}
+}
+</style>
+</head>
+<body>
+<form class="box" method="POST" action="/totp/verify">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="logo">ROVIMEN</div>
+  <div class="subtitle">2-Factor Authentication</div>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <div class="field">
+    <label for="totp-verify-code">6-digit code from your authenticator</label>
+    <input id="totp-verify-code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}"
+           maxlength="6" autocomplete="one-time-code" autofocus required>
+  </div>
+  <button type="submit" class="btn">Verify</button>
+</form>
+</body>
+</html>

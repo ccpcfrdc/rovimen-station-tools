@@ -1,0 +1,19 @@
+{
+  "station-01": {
+    "label": "My Site (station-01)",
+    "lat": 45.0,
+    "lon": 25.0,
+    "cameras": [
+      {
+        "code": "XX0001",
+        "platepar": "downloads/station-01/XX0001/platepar_cmn2010.cal",
+        "image": "downloads/station-01/XX0001/captured_stack.jpg"
+      },
+      {
+        "code": "XX0002",
+        "platepar": "downloads/station-01/XX0002/platepar_cmn2010.cal",
+        "image": "downloads/station-01/XX0002/captured_stack.jpg"
+      }
+    ]
+  }
+}

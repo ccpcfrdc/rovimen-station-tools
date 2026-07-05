@@ -1,0 +1,21 @@
+[Unit]
+Description=ROVIMEN Detection Metadata Indexer
+After=network.target rovimen-station-api.service
+Wants=rovimen-station-api.service
+
+[Service]
+Type=simple
+User=gmn
+Group=gmn
+WorkingDirectory=/home/gmn/rovimen_scripts
+ExecStart=/home/gmn/RMS/venv/bin/python /home/gmn/rovimen_scripts/detection_indexer.py
+Restart=always
+RestartSec=30
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONIOENCODING=utf-8
+# Cap CPU so indexing never competes with capture
+CPUQuota=50%
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=ROVIMEN Station API (port 7779)
+After=network.target
+
+[Service]
+Type=simple
+User=gmn
+Group=gmn
+WorkingDirectory=/home/gmn/rovimen_scripts
+ExecStart=/home/gmn/RMS/venv/bin/python /home/gmn/rovimen_scripts/station_api.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

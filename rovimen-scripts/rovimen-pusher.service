@@ -1,0 +1,25 @@
+[Unit]
+Description=ROVIMEN Push Agent (outbound telemetry to VPS ingest API)
+# Reads local station_api :7779; starts after it so heartbeats have data.
+After=network-online.target rovimen-station-api.service
+Wants=network-online.target rovimen-station-api.service
+
+[Service]
+Type=simple
+User=gmn
+Group=gmn
+WorkingDirectory=/home/gmn/rovimen_scripts
+# Opt-in gate: the agent exits 0 immediately unless the ingest key file exists,
+# so the unit can be enabled fleet-wide while staying dormant until a station
+# is enrolled in the push pilot.
+ExecStart=/home/gmn/RMS/venv/bin/python /home/gmn/rovimen_scripts/rovimen_pusher.py
+Restart=always
+RestartSec=15
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONIOENCODING=utf-8
+# Purely outbound telemetry — keep it out of capture's way.
+Nice=10
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target

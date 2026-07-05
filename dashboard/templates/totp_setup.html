@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROVIMEN — Enable 2FA</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<style>
+/* :root tokens (--bg, --card, --border, --text, --muted, --green, --red,
+   --blue) come from dashboard.css. Auth-only layout overrides below. */
+body{display:flex;align-items:center;justify-content:center;padding:20px;min-height:100vh}
+.box{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:32px 36px;width:440px;max-width:100%}
+.logo{font-size:18px;font-weight:700;color:var(--blue);letter-spacing:1.5px;
+  text-align:center;margin-bottom:6px}
+.subtitle{font-size:11px;color:var(--muted);text-align:center;margin-bottom:6px;
+  text-transform:uppercase;letter-spacing:1px}
+.notice{font-size:11px;color:var(--muted);text-align:center;margin-bottom:18px;
+  line-height:1.5;padding:10px;background:rgba(88,166,255,.06);
+  border:1px solid rgba(88,166,255,.15);border-radius:5px}
+.qr{display:flex;justify-content:center;margin-bottom:14px}
+.qr img{background:#fff;border-radius:6px;padding:6px;max-width:100%;height:auto}
+.secret-label{font-size:10px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:1px;text-align:center;margin-bottom:4px}
+.secret{font-size:13px;color:var(--text);background:var(--bg);
+  border:1px solid var(--border);border-radius:5px;padding:8px;
+  text-align:center;margin-bottom:18px;user-select:all;word-break:break-all}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;text-transform:uppercase;
+  letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);font-family:inherit;font-size:18px;letter-spacing:6px;
+  padding:10px 12px;border-radius:6px;text-align:center;box-sizing:border-box}
+.field input:focus{outline:none;border-color:var(--blue)}
+.btn{width:100%;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);
+  color:var(--blue);font-family:inherit;font-size:13px;font-weight:600;padding:10px;
+  border-radius:6px;cursor:pointer;letter-spacing:.5px;margin-top:6px}
+.btn:hover{background:rgba(88,166,255,.22)}
+.error{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.25);
+  border-radius:6px;padding:10px;color:var(--red);font-size:12px;text-align:center;
+  margin-bottom:14px}
+/* Phone: tighten side padding so the 440-px design fits a 375-px
+   viewport, and reduce the wide 6 px letter-spacing on the OTP input
+   slightly so 6 digits don't wrap to two lines on small screens. */
+@media(max-width:540px){
+  body{padding:12px}
+  .box{padding:22px 16px;border-radius:12px}
+  .field input{letter-spacing:4px;font-size:18px;min-height:48px}
+  .btn{font-size:14px;padding:14px;min-height:44px}
+  .notice{font-size:12px;line-height:1.55}
+  .qr img{width:180px;height:180px}
+}
+</style>
+</head>
+<body>
+<form class="box" method="POST" action="/totp/setup">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="logo">ROVIMEN</div>
+  <div class="subtitle">Enable Two-Factor Authentication</div>
+  <div class="notice">
+    Scan the QR with your authenticator app (Google Authenticator,
+    1Password, Authy, …), then enter the 6-digit code shown to confirm.
+    Save the secret somewhere safe so you can re-enrol if you lose the device.
+  </div>
+  <div class="qr"><img src="{{ qr_data_uri }}" alt="TOTP QR" width="180" height="180"></div>
+  <div class="secret-label">Secret (if you can't scan)</div>
+  <div class="secret">{{ secret }}</div>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <div class="field">
+    <label for="totp-setup-code">Code from your app</label>
+    <input id="totp-setup-code" type="text" name="code" inputmode="numeric" pattern="[0-9]{6}"
+           maxlength="6" autocomplete="one-time-code" autofocus required>
+  </div>
+  <button type="submit" class="btn">Enable 2FA</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROVIMEN — Network Status</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js":          "{{ url_for('static', filename='dashboard-common.js',          v=build_version) }}",
+    "/static/dashboard-video-modal.js":     "{{ url_for('static', filename='dashboard-video-modal.js',     v=build_version) }}",
+    "/static/dashboard-multi-det-modal.js": "{{ url_for('static', filename='dashboard-multi-det-modal.js', v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-network.css', v=build_version) }}">
+</head>
+<body>
+
+<div class="nw-header">
+  <a href="/" class="nav-logo">ROVIMEN</a>
+  <nav class="main-nav">
+    <a href="/" class="nav-tab">Stations</a>
+    <a href="/events" class="nav-tab">Detections</a>
+    <a href="/highlights" class="nav-tab">Highlights</a>
+    <a href="/showers" class="nav-tab">Showers</a>
+    <a href="/admin" class="nav-tab nav-tab-admin" id="logo-dd-admin" style="display:none">Admin</a>
+    <button class="nav-tab" onclick="openAppPanel('about')">About</button>
+  </nav>
+  <div class="nw-hdr-right">
+    <span id="utc-clock" class="hdr-clock"></span>
+    <div id="nw-auth"></div>
+  </div>
+</div>
+
+<div class="nw-main">
+  <div class="nw-title">Network Status</div>
+  <div class="nw-subtitle-bar">All stations &mdash; auto-refreshes every 30 s</div>
+  <div class="nw-summary" id="nw-summary"></div>
+
+  <!-- Desktop table -->
+  <div class="nw-table-wrap">
+    <table class="nw-table" id="nw-table" aria-label="Station network status">
+      <thead>
+        <tr>
+          <th data-col="key"      onclick="nwSort('key')">Station</th>
+          <th data-col="online"   onclick="nwSort('online')">Online</th>
+          <th data-col="last_seen" onclick="nwSort('last_seen')"
+              title="When the dashboard last successfully polled this station. Polling runs every 30–60 s in parallel, so identical timestamps across stations are expected — they share a poll cycle, not a station heartbeat.">Last polled</th>
+          <th data-col="cpu"      onclick="nwSort('cpu')">CPU %</th>
+          <th data-col="ram"      onclick="nwSort('ram')">RAM %</th>
+          <th data-col="temp"     onclick="nwSort('temp')">Temp &deg;C</th>
+          <th data-col="disk"     onclick="nwSort('disk')">Disk %</th>
+          <th data-col="cameras"  style="cursor:default">Cameras</th>
+        </tr>
+      </thead>
+      <tbody id="nw-tbody">
+        <tr><td colspan="8" class="nw-loading">Loading&hellip;</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="nw-cards" id="nw-cards">
+    <div class="nw-loading">Loading&hellip;</div>
+  </div>
+
+  <div class="nw-refresh-info">Last fetched: <span id="nw-last-fetch">&#8212;</span></div>
+</div>
+
+<div id="app-panel" class="app-panel" role="dialog" aria-modal="true" aria-hidden="true" onclick="appPanelClose(event)">
+  <div class="app-panel-inner">
+    <div class="app-panel-header">
+      <span id="app-panel-title" class="app-panel-title"></span>
+      <button class="cam-modal-close" aria-label="Close panel" onclick="appPanelClose(null)">&#x2715;</button>
+    </div>
+    <div id="app-panel-body"></div>
+  </div>
+</div>
+
+<script type="module" src="{{ url_for('static', filename='dashboard-network.js', v=build_version) }}"></script>
+</body>
+</html>

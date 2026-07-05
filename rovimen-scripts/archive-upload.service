@@ -1,0 +1,15 @@
+[Unit]
+Description=ROVIMEN archive uploader to Hetzner Storage Box
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env python3 %h/rovimen_scripts/archive_upload.py -c %h/rovimen_scripts/config.json --daemon
+Restart=always
+RestartSec=60
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONIOENCODING=utf-8
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROVIMEN — Config</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js":          "{{ url_for('static', filename='dashboard-common.js',          v=build_version) }}",
+    "/static/dashboard-video-modal.js":     "{{ url_for('static', filename='dashboard-video-modal.js',     v=build_version) }}",
+    "/static/dashboard-multi-det-modal.js": "{{ url_for('static', filename='dashboard-multi-det-modal.js', v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-config.css', v=build_version) }}">
+</head>
+<body>
+
+<div class="cfg-header" id="cfg-header">
+  <a href="/" class="nav-logo">ROVIMEN</a>
+  <nav class="main-nav">
+    <a href="/" class="nav-tab">Stations</a>
+    <a href="/events" class="nav-tab">Detections</a>
+    <a href="/highlights" class="nav-tab">Highlights</a>
+    <a href="/showers" class="nav-tab">Showers</a>
+    <a href="/social" class="nav-tab nav-tab-admin" id="logo-dd-social" style="display:none">Social</a>
+    <a href="/admin" class="nav-tab nav-tab-admin" id="logo-dd-admin" style="display:none">Admin</a>
+    <button class="nav-tab" onclick="openAppPanel('about')">About</button>
+  </nav>
+  <span id="cfg-auth" style="font-size:11px;display:flex;align-items:center;gap:8px;margin-left:auto"></span>
+</div>
+
+<div class="cfg-main">
+  <div id="cfg-status-bar" class="cfg-status"></div>
+  <div id="cfg-diff-banner" class="cfg-diff-banner"></div>
+  <div id="cfg-body"><div class="cfg-loading">Loading station configs…</div></div>
+</div>
+
+<script type="module" src="{{ url_for('static', filename='dashboard-config.js', v=build_version) }}"></script>
+
+
+<!-- SW registration (kept inline) -->
+<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('/sw.js').catch(err => {
+    console.warn('SW registration failed', err);
+  });
+}
+</script>
+<div id="app-panel" class="app-panel" role="dialog" aria-modal="true" aria-hidden="true" onclick="appPanelClose(event)">
+  <div class="app-panel-inner">
+    <div class="app-panel-header">
+      <span id="app-panel-title" class="app-panel-title"></span>
+      <button class="cam-modal-close" aria-label="Close panel" onclick="appPanelClose(null)">&#x2715;</button>
+    </div>
+    <div id="app-panel-body"></div>
+  </div>
+</div>
+</body>
+</html>

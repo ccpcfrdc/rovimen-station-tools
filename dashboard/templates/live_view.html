@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ROVIMEN — Live View</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js":          "{{ url_for('static', filename='dashboard-common.js',          v=build_version) }}",
+    "/static/dashboard-video-modal.js":     "{{ url_for('static', filename='dashboard-video-modal.js',     v=build_version) }}",
+    "/static/dashboard-multi-det-modal.js": "{{ url_for('static', filename='dashboard-multi-det-modal.js', v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-live-view.css', v=build_version) }}">
+</head>
+<body>
+
+<div class="lv-header">
+  <a href="/" class="lv-logo">ROVIMEN</a>
+  <span class="lv-subtitle">Live View</span>
+  <a href="/" class="lv-back">Overview</a>
+</div>
+
+<div class="lv-main">
+  <div class="lv-status" id="lv-status">Loading...</div>
+  <div class="lv-grid" id="lv-grid"></div>
+</div>
+
+<div class="lv-modal" id="lv-modal" role="dialog" aria-modal="true" onclick="lvCloseModal(event)">
+  <button class="lv-modal-close" onclick="lvCloseModal(null)" aria-label="Close">Close</button>
+  <img id="lv-modal-img" alt="Full size">
+</div>
+
+<script type="module" src="{{ url_for('static', filename='dashboard-live-view.js', v=build_version) }}"></script>
+</body>
+</html>

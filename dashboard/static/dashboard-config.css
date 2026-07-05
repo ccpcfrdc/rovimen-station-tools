@@ -1,0 +1,110 @@
+.cfg-header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 24px;
+  display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.cfg-logo{font-size:18px;font-weight:700;color:var(--blue);letter-spacing:1.5px;text-decoration:none}
+.cfg-subtitle{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.cfg-nav{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px}
+.cfg-nav a{color:var(--muted);text-decoration:none;padding:3px 10px;border:1px solid var(--border);
+  border-radius:4px;transition:color .15s,border-color .15s}
+.cfg-nav a:hover{color:var(--text);border-color:var(--blue)}
+
+.cfg-main{padding:20px 24px;max-width:1600px;margin:0 auto}
+
+.cfg-status{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;font-size:11px}
+.cfg-badge{padding:3px 10px;border-radius:3px;font-weight:600}
+.cfg-badge.online{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25)}
+.cfg-badge.offline{background:rgba(248,81,73,.08);color:var(--red);border:1px solid rgba(248,81,73,.2)}
+.cfg-badge.error{background:rgba(210,153,34,.1);color:var(--yellow);border:1px solid rgba(210,153,34,.25)}
+
+.cfg-diff-banner{background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);border-radius:6px;
+  padding:8px 14px;margin-bottom:18px;font-size:12px;color:var(--yellow);display:none}
+
+.cfg-section{margin-bottom:14px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.cfg-section-hdr{background:rgba(48,54,61,.5);padding:8px 14px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;gap:8px;user-select:none}
+.cfg-section-hdr:hover{color:var(--text)}
+.cfg-section-hdr .diff-count{background:rgba(210,153,34,.2);color:var(--yellow);
+  border-radius:3px;padding:1px 7px;font-size:10px;font-weight:700;letter-spacing:0}
+.cfg-section-hdr .chevron{margin-left:auto;transition:transform .2s}
+.cfg-section-hdr.collapsed .chevron{transform:rotate(-90deg)}
+.cfg-section-body{overflow:hidden}
+.cfg-section-body.hidden{display:none}
+
+.cfg-table{width:100%;border-collapse:collapse;font-size:14px}
+.cfg-table th{background:rgba(48,54,61,.4);padding:7px 12px;text-align:left;font-weight:600;
+  font-size:13px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+.cfg-table th.station-col{text-align:center;min-width:110px}
+.cfg-table th .st-label{font-weight:400;color:var(--muted);font-size:12px;display:block}
+.cfg-table td.station-name{white-space:nowrap;font-weight:600;color:var(--blue);font-family:'SF Mono',monospace;font-size:12px;position:sticky;left:0;background:var(--card);z-index:1}
+.cfg-table td.station-name .st-lbl{font-weight:400;color:var(--muted);font-size:11px;margin-left:6px}
+.cfg-table td{padding:6px 12px;border-bottom:1px solid rgba(48,54,61,.4);vertical-align:middle}
+.cfg-table tr:last-child td{border-bottom:none}
+.cfg-table tr:hover td{background:rgba(48,54,61,.2)}
+
+.cfg-table td.field-name{color:var(--muted);font-size:13px;white-space:nowrap;width:180px;font-family:'SF Mono',Consolas,monospace}
+.cfg-table td.val{text-align:center;font-family:'SF Mono',Consolas,monospace;font-size:13px}
+.cfg-table td.val.diff{background:rgba(210,153,34,.12);color:var(--yellow)}
+.cfg-table td.val.missing{color:rgba(139,148,158,.4);font-style:italic}
+.cfg-table td.val.ok{color:var(--text)}
+.cfg-table td.val.bool-true{color:var(--green)}
+.cfg-table td.val.bool-false{color:var(--red)}
+.cfg-table td.val.diff.bool-true{color:var(--yellow)}
+.cfg-table td.val.diff.bool-false{color:var(--yellow)}
+.cfg-table td.val.sync-col{width:60px;text-align:center;padding:4px}
+
+.val-bool-true::before{content:'\2713'}
+.val-bool-false::before{content:'\2717'}
+
+.sync-btn{background:rgba(88,166,255,.1);color:var(--blue);border:1px solid rgba(88,166,255,.2);
+  border-radius:3px;padding:2px 8px;font-size:10px;cursor:pointer;white-space:nowrap}
+.sync-btn:hover{background:rgba(88,166,255,.2)}
+
+/* Inline editing */
+.val-input{background:var(--card);border:1px solid var(--blue);border-radius:3px;
+  color:var(--text);padding:2px 6px;font-size:11px;font-family:'SF Mono',Consolas,monospace;
+  width:90px;outline:none}
+
+.cfg-loading{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+.cfg-error{padding:20px;color:var(--red);font-size:13px}
+
+@media(max-width:768px){
+  .cfg-main{padding:10px}
+  .cfg-header{padding:10px 12px;flex-wrap:wrap}
+  .cfg-table{font-size:11px}
+  .cfg-table td.field-name{width:120px}
+  /* Wrap each table in a horizontal scroll container so the N-station
+     wide grid can be swiped instead of overflowing the page. The body
+     is built dynamically with no wrapper, so apply overflow on
+     .cfg-section-body directly. */
+  .cfg-section-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Keep the field name column visible while scrolling station
+     columns. Backdrop colour matches the table head so values
+     don't bleed visually through. */
+  .cfg-table td.field-name{position:sticky;left:0;background:var(--card);z-index:1;
+    box-shadow:1px 0 0 var(--border)}
+  .cfg-table th:first-child{position:sticky;left:0;background:var(--card);z-index:2;
+    box-shadow:1px 0 0 var(--border)}
+}
+
+@media(max-width:540px){
+  .cfg-header{padding:6px 8px;gap:8px}
+  .cfg-subtitle{display:none}
+  .cfg-main{padding:6px 8px}
+  .cfg-status{font-size:10px;gap:6px;margin-bottom:12px}
+  .cfg-badge{font-size:10px;padding:3px 8px}
+  .cfg-diff-banner{padding:8px 10px;font-size:11px;margin-bottom:12px}
+  .cfg-section-hdr{padding:10px 12px;font-size:11px}
+  .cfg-table{font-size:11px}
+  .cfg-table td.field-name{width:140px;font-size:11px}
+  .cfg-table th{padding:8px 10px}
+  .cfg-table td{padding:8px 10px}
+  .cfg-table th.station-col{min-width:96px;font-size:11px}
+  .cfg-table th .st-label{font-size:10px}
+  /* Inline edit input is narrow (90 px) -- keep desktop look but use
+     16 px font so iOS doesn't auto-zoom on focus. */
+  .val-input{font-size:16px;width:84px;padding:6px 8px}
+  /* The Save button at the bottom of each section was right-aligned;
+     stretch it across the full width on phone. */
+  .cfg-section-body > div:last-child{justify-content:stretch!important}
+  .cfg-section-body .sync-btn{flex:1;min-height:44px;font-size:13px;padding:10px 14px!important}
+}

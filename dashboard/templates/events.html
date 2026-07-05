@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ROVIMEN — Meteor Detections</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js":          "{{ url_for('static', filename='dashboard-common.js',          v=build_version) }}",
+    "/static/dashboard-video-modal.js":     "{{ url_for('static', filename='dashboard-video-modal.js',     v=build_version) }}",
+    "/static/dashboard-multi-det-modal.js": "{{ url_for('static', filename='dashboard-multi-det-modal.js', v=build_version) }}",
+    "/static/dashboard-grid.js":            "{{ url_for('static', filename='dashboard-grid.js',            v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='twilight-slider.js', v=build_version) }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-events.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-grid.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-video-modal.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-multi-det-modal.css', v=build_version) }}">
+</head>
+<body>
+
+<div class="ev-header">
+  <a href="/" class="nav-logo">ROVIMEN</a>
+  <nav class="main-nav">
+    {% if nav_show('overview') %}<a href="/map" class="nav-tab">Stations</a>{% endif %}
+    {% if nav_show('events') %}<a href="/events" class="nav-tab active">Detections</a>{% endif %}
+    {% if nav_show('highlights') %}<a href="/highlights" class="nav-tab">Highlights</a>{% endif %}
+    {% if nav_show('showers') %}<a href="/showers" class="nav-tab">Showers</a>{% endif %}
+    <a href="/social" class="nav-tab nav-tab-admin" id="logo-dd-social" style="display:none">Social</a>
+    <a href="/admin" class="nav-tab nav-tab-admin" id="logo-dd-admin" style="display:none">Admin</a>
+    <button class="nav-tab" onclick="openAppPanel('about')">About</button>
+  </nav>
+</div>
+
+<div class="ev-tabs">
+  <button class="ev-tab active" id="tab-btn-detections" onclick="switchTab('detections')">All Detections</button>
+  <button class="ev-tab" id="tab-btn-events" onclick="switchTab('events')">Multi-Station Events</button>
+  <button class="ev-tab" id="tab-btn-grid" onclick="switchTab('grid')">Grid</button>
+  <button class="ev-tab" id="tab-btn-sortfilter" onclick="switchTab('sortfilter')">Sort &amp; Filter</button>
+</div>
+
+<div class="ev-filter-bar">
+  <div class="ev-filter-group">
+    <label for="ev-date">Night</label>
+    <select id="ev-date" class="ev-date"></select>
+  </div>
+  <div class="ev-filter-group ev-filter-group--time">
+    <label>Time</label>
+    <span class="ev-time-label" id="ev-time-label">
+      <input type="text" id="ev-time-start" class="ev-time-input" maxlength="5"
+             value="12:00" autocomplete="off" spellcheck="false"
+             onchange="evTimeInputChange('start')"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+             onfocus="this.select()">
+      <span class="ev-time-arrow">&rarr;</span>
+      <input type="text" id="ev-time-end" class="ev-time-input" maxlength="5"
+             value="12:00" autocomplete="off" spellcheck="false"
+             onchange="evTimeInputChange('end')"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+             onfocus="this.select()">
+      <span class="ev-time-suffix">UTC</span>
+    </span>
+    <span class="ev-moon-icon" id="ev-moon-icon" title=""></span>
+    <div class="ev-slider-wrap">
+      <input type="range" id="ev-slider-start" min="0" max="1440" value="0"
+             oninput="evSliderInput('start')">
+      <input type="range" id="ev-slider-end" min="0" max="1440" value="1440"
+             oninput="evSliderInput('end')">
+    </div>
+  </div>
+  <div class="ev-filter-group">
+    <label>Pointing</label>
+    <svg width="56" height="56" viewBox="0 0 72 72" class="ev-compass">
+      <circle cx="36" cy="36" r="30" fill="none" stroke="var(--border)" stroke-width="1"/>
+      <path class="ev-compass-slice" data-dir="N" onclick="evCompassClick('N')"
+            d="M36 36 L14.8 14.8 A30 30 0 0 1 57.2 14.8 Z"/>
+      <path class="ev-compass-slice" data-dir="E" onclick="evCompassClick('E')"
+            d="M36 36 L57.2 14.8 A30 30 0 0 1 57.2 57.2 Z"/>
+      <path class="ev-compass-slice" data-dir="S" onclick="evCompassClick('S')"
+            d="M36 36 L57.2 57.2 A30 30 0 0 1 14.8 57.2 Z"/>
+      <path class="ev-compass-slice" data-dir="W" onclick="evCompassClick('W')"
+            d="M36 36 L14.8 57.2 A30 30 0 0 1 14.8 14.8 Z"/>
+      <circle cx="36" cy="36" r="3" fill="var(--border)" pointer-events="none"/>
+      <text class="ev-compass-lbl" x="36" y="9"  text-anchor="middle">N</text>
+      <text class="ev-compass-lbl" x="64" y="38" text-anchor="middle">E</text>
+      <text class="ev-compass-lbl" x="36" y="67" text-anchor="middle">S</text>
+      <text class="ev-compass-lbl" x="8"  y="38" text-anchor="middle">W</text>
+    </svg>
+  </div>
+  <div class="ev-zoom-row" style="margin-left:auto">
+    <span title="Smaller">&#9723;</span>
+    <input type="range" id="ev-zoom" min="80" max="240" value="110"
+           oninput="evUpdateZoom(this.value)" title="Card size">
+    <span title="Larger">&#9724;</span>
+  </div>
+</div>
+
+<div id="pane-detections" class="ev-pane active">
+  <div class="ev-main" id="detections-main">
+    <div class="ev-loading"><div class="ev-spinner"></div> Loading detections…</div>
+  </div>
+</div>
+
+<div id="pane-events" class="ev-pane">
+  <div class="ev-main" id="events-main">
+    <div class="ev-loading"><div class="ev-spinner"></div> Loading events…</div>
+  </div>
+</div>
+
+<div id="pane-sortfilter" class="ev-pane">
+  <div class="sf-toolbar">
+    <div class="sf-group">
+      <label for="sf-from">From</label>
+      <input type="date" id="sf-from" onchange="sfReload()">
+    </div>
+    <div class="sf-group">
+      <label for="sf-to">To</label>
+      <input type="date" id="sf-to" onchange="sfReload()">
+    </div>
+    <div class="sf-group" style="flex:1;min-width:180px">
+      <label>Showers</label>
+      <div class="sf-chips" id="sf-shower-chips">
+        <span style="font-size:11px;color:var(--muted)">Load a range to see showers</span>
+      </div>
+    </div>
+    <div class="sf-group">
+      <label for="sf-sort">Sort by</label>
+      <select id="sf-sort" onchange="sfRender()">
+        <option value="time_desc">Time (newest first)</option>
+        <option value="time_asc">Time (oldest first)</option>
+        <option value="mag_bright">Magnitude (brightest first)</option>
+        <option value="mag_faint">Magnitude (faintest first)</option>
+        <option value="duration_desc">Duration (longest first)</option>
+        <option value="shower">Shower</option>
+      </select>
+    </div>
+    <div class="ev-zoom-row" style="margin-left:auto">
+      <span title="Smaller">&#9723;</span>
+      <input type="range" id="sf-zoom" min="80" max="240" value="110"
+             oninput="evUpdateZoom(this.value)" title="Card size">
+      <span title="Larger">&#9724;</span>
+    </div>
+  </div>
+  <div class="ev-main" id="sortfilter-main">
+    <div class="ev-loading"><div class="ev-spinner"></div> Pick a date range to load detections…</div>
+  </div>
+</div>
+
+<div id="pane-grid" class="ev-pane">
+  <div class="grid-toolbar">
+    <div class="grid-group">
+      <label for="grid-mode">View</label>
+      <select id="grid-mode">
+        <option value="footage" selected>All footage</option>
+        <option value="detections">Detections only</option>
+      </select>
+    </div>
+    <div class="grid-group">
+      <label for="grid-bucket">Bucket</label>
+      <select id="grid-bucket">
+        <option value="1">1 min</option>
+        <option value="2">2 min</option>
+        <option value="5" selected>5 min</option>
+        <option value="10">10 min</option>
+        <option value="15">15 min</option>
+        <option value="30">30 min</option>
+        <option value="60">60 min</option>
+      </select>
+    </div>
+    <div class="grid-group">
+      <label for="grid-from">From (UTC)</label>
+      <input type="text" id="grid-from" maxlength="5" placeholder="--:--"
+             autocomplete="off" spellcheck="false"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">
+    </div>
+    <div class="grid-group">
+      <label for="grid-to">To (UTC)</label>
+      <input type="text" id="grid-to" maxlength="5" placeholder="--:--"
+             autocomplete="off" spellcheck="false"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">
+    </div>
+    <div class="grid-hint">
+      All footage: cameras down, time across — every clip in the window (capped to
+      ~5 min). Set a start time to inspect an event, including cameras that never
+      triggered a detection. Continuous video is kept ~2 days.
+    </div>
+  </div>
+  <div class="ev-main" id="grid-main">
+    <div class="ev-loading"><div class="ev-spinner"></div> Pick a night to load the grid…</div>
+  </div>
+</div>
+
+<!-- Events video modal — multi-video mode for multi-station events -->
+<div id="ev-modal-container"></div>
+<!-- Single-clip modal — single-video mode for individual detections -->
+<div id="ev-single-modal-container"></div>
+
+<!-- Compilation cart drawer + floating button (admin-only, hidden until first add) -->
+<button class="comp-fab empty" id="comp-fab" onclick="compCartToggleDrawer()" style="display:none">
+  <span>&#127916;</span> Compilation <span class="comp-fab-count" id="comp-fab-count">0</span>
+</button>
+<aside class="comp-drawer" id="comp-drawer" aria-hidden="true">
+  <div class="comp-drawer-hdr">
+    <h3>Compilation cart</h3>
+    <button class="comp-drawer-close" onclick="compCartToggleDrawer()">Close</button>
+  </div>
+  <div class="comp-drawer-body" id="comp-drawer-body"></div>
+  <div class="comp-progress" id="comp-progress" style="display:none"></div>
+  <div class="comp-drawer-foot" id="comp-drawer-foot">
+    <label>Title
+      <input type="text" id="comp-title" placeholder="ROVIMEN Weekly · 2026-W19" maxlength="120">
+    </label>
+    <label>Schedule for (optional)
+      <input type="datetime-local" id="comp-schedule">
+    </label>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap" id="comp-yt-row">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--text)" id="comp-yt-label">
+        <input type="checkbox" id="comp-yt-upload" onchange="compCartYtToggle()">
+        <span>Upload to YouTube</span>
+      </label>
+      <select id="comp-yt-privacy" disabled
+              style="background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:11px;font-family:inherit">
+        <option value="unlisted">Unlisted</option>
+        <option value="private">Private</option>
+        <option value="public">Public</option>
+      </select>
+      <span id="comp-yt-warn" style="font-size:10px;color:#f59e0b;display:none"></span>
+    </div>
+    <div class="comp-drawer-actions">
+      <button class="comp-secondary" onclick="compCartClear()" type="button">Clear cart</button>
+      <button class="comp-build-btn" id="comp-build-btn" onclick="compCartBuild()" type="button">Build now</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted)">
+      <span id="comp-summary">0 clips</span>
+      <button class="comp-secondary" onclick="compCartShowList()" type="button" style="padding:3px 8px;font-size:10px">Past builds</button>
+    </div>
+  </div>
+</aside>
+
+<script type="module" src="{{ url_for('static', filename='dashboard-events.js', v=build_version) }}"></script>
+
+<script>
+// Register the Service Worker for shell caching. Skip on plain HTTP — SW
+// only works over HTTPS or localhost. Source: dashboard/static/sw.js,
+// exposed at the origin root via the /sw.js Flask route.
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('/sw.js').catch(err => {
+    console.warn('SW registration failed', err);
+  });
+}
+</script>
+<div id="app-panel" class="app-panel" onclick="appPanelClose(event)"
+     role="dialog" aria-modal="true" aria-labelledby="app-panel-title" aria-hidden="true">
+  <div class="app-panel-inner">
+    <div class="app-panel-header">
+      <span id="app-panel-title" class="app-panel-title"></span>
+      <button class="cam-modal-close" onclick="appPanelClose(null)" aria-label="Close panel">Close</button>
+    </div>
+    <div id="app-panel-body"></div>
+  </div>
+</div>
+</body>
+</html>

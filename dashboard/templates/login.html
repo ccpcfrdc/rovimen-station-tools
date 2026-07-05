@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROVIMEN — Login</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<style>
+/* :root tokens (--bg, --card, --border, --text, --muted, --green, --red,
+   --blue) come from dashboard.css. Login-specific styling stays here so
+   the auth shell remains visually distinct from the dashboard header. */
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:32px 36px;width:360px;max-width:100%}
+.login-logo{font-size:18px;font-weight:700;color:var(--blue);letter-spacing:1.5px;
+  text-align:center;margin-bottom:6px}
+.login-subtitle{font-size:11px;color:var(--muted);text-align:center;margin-bottom:24px;
+  text-transform:uppercase;letter-spacing:1px}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);margin-bottom:6px}
+.login-field input{width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;border-radius:6px;
+  box-sizing:border-box}
+.login-field input:focus{outline:none;border-color:var(--blue)}
+.login-btn{width:100%;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);
+  color:var(--blue);font-family:inherit;font-size:13px;font-weight:600;padding:10px;
+  border-radius:6px;cursor:pointer;letter-spacing:.5px;margin-top:6px}
+.login-btn:hover{background:rgba(88,166,255,.22)}
+.login-error{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.25);
+  border-radius:6px;padding:10px;color:var(--red);font-size:12px;text-align:center;
+  margin-bottom:14px}
+/* Phone — at 375 px the 36 px horizontal padding eats most of the box.
+   Tighten it and bump input font to 16 px so iOS Safari doesn't auto-zoom
+   the page when either field gets focus. Buttons + inputs reach the
+   44 px Apple HIG tap-target floor. */
+@media(max-width:540px){
+  .login-box{padding:24px 18px;border-radius:12px}
+  .login-field input{font-size:16px;padding:12px;min-height:44px}
+  .login-btn{font-size:14px;padding:14px;min-height:44px}
+}
+</style>
+</head>
+<body>
+<form class="login-box" method="POST" action="/login">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="login-logo">ROVIMEN</div>
+  <div class="login-subtitle">Admin Login</div>
+  {% if error %}
+  <div class="login-error">{{ error }}</div>
+  {% endif %}
+  <div class="login-field">
+    <label for="login-username">Username</label>
+    <input id="login-username" type="text" name="username" autocomplete="username" autofocus required>
+  </div>
+  <div class="login-field">
+    <label for="login-password">Password</label>
+    <input id="login-password" type="password" name="password" autocomplete="current-password" required>
+  </div>
+  <button type="submit" class="login-btn">Sign In</button>
+</form>
+</body>
+</html>

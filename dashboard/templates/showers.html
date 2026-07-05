@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ROVIMEN — Meteor Showers</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-overview.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-showers.css', v=build_version) }}">
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js": "{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard-showers.js', v=build_version) }}"></script>
+</head>
+<body>
+
+<div class="ov-header">
+  <a href="/" class="nav-logo">ROVIMEN</a>
+  <nav class="main-nav">
+    {% if nav_show('overview') %}<a href="/map" class="nav-tab">Stations</a>{% endif %}
+    {% if nav_show('events') %}<a href="/events" class="nav-tab">Detections</a>{% endif %}
+    {% if nav_show('highlights') %}<a href="/highlights" class="nav-tab">Highlights</a>{% endif %}
+    {% if nav_show('showers') %}<a href="/showers" class="nav-tab active">Showers</a>{% endif %}
+    <a href="/social" class="nav-tab nav-tab-admin" id="logo-dd-social" style="display:none">Social</a>
+    <a href="/admin" class="nav-tab nav-tab-admin" id="logo-dd-admin" style="display:none">Admin</a>
+    <button class="nav-tab" onclick="openAppPanel('about')">About</button>
+  </nav>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <span id="utc-clock" class="hdr-clock"></span>
+    <div id="ov-auth"></div>
+  </div>
+</div>
+
+<!-- Month filter -->
+<div class="sh-filter-bar" id="sh-filter-bar">
+  <button class="sh-month-btn active" data-month="all">All months</button>
+  <button class="sh-month-btn" data-month="Sporadic">Sporadic</button>
+  <button class="sh-month-btn" data-month="January">January</button>
+  <button class="sh-month-btn" data-month="February">February</button>
+  <button class="sh-month-btn" data-month="March">March</button>
+  <button class="sh-month-btn" data-month="April">April</button>
+  <button class="sh-month-btn" data-month="May">May</button>
+  <button class="sh-month-btn" data-month="June">June</button>
+  <button class="sh-month-btn" data-month="July">July</button>
+  <button class="sh-month-btn" data-month="August">August</button>
+  <button class="sh-month-btn" data-month="September">September</button>
+  <button class="sh-month-btn" data-month="October">October</button>
+  <button class="sh-month-btn" data-month="November">November</button>
+  <button class="sh-month-btn" data-month="December">December</button>
+</div>
+
+<!-- Search + metadata -->
+<div class="sh-toolbar">
+  <input type="search" id="sh-search" class="sh-search" placeholder="Search by name or code…" autocomplete="off">
+  <label class="sh-check-label">
+    <input type="checkbox" id="sh-only-detections">
+    Only with ROVIMEN detections
+  </label>
+  <span class="sh-count" id="sh-count"></span>
+  <span class="sh-source-note">
+    Source: <a href="https://www.ta3.sk/IAUC22DB/MDC2022/" target="_blank" rel="noopener">IAU Meteor Data Center</a>
+    &middot; ZHR: <a href="https://www.imo.net/resources/calendar/" target="_blank" rel="noopener">IMO Shower Calendar</a>
+  </span>
+</div>
+
+<!-- Shower cards -->
+<div class="sh-page-wrap" id="sh-page-wrap">
+  <div class="sh-loading" id="sh-loading">Loading shower data&hellip;</div>
+</div>
+
+<!-- About panel -->
+<div id="app-panel" class="app-panel" onclick="appPanelClose(event)">
+  <div class="app-panel-inner">
+    <div class="app-panel-header">
+      <span id="app-panel-title" class="app-panel-title"></span>
+      <button class="cam-modal-close" onclick="appPanelClose(null)">&#x2715;</button>
+    </div>
+    <div id="app-panel-body"></div>
+  </div>
+</div>
+
+</body>
+</html>

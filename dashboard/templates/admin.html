@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROVIMEN — Admin Tools</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js":          "{{ url_for('static', filename='dashboard-common.js',          v=build_version) }}",
+    "/static/dashboard-video-modal.js":     "{{ url_for('static', filename='dashboard-video-modal.js',     v=build_version) }}",
+    "/static/dashboard-multi-det-modal.js": "{{ url_for('static', filename='dashboard-multi-det-modal.js', v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-admin.css', v=build_version) }}">
+</head>
+<body>
+
+<div class="adm-header">
+  <a href="/" class="nav-logo">ROVIMEN</a>
+  <nav class="main-nav">
+    <a href="/" class="nav-tab">Stations</a>
+    <a href="/events" class="nav-tab">Detections</a>
+    <a href="/highlights" class="nav-tab">Highlights</a>
+    <a href="/showers" class="nav-tab">Showers</a>
+    <a href="/admin" class="nav-tab active">Admin</a>
+    <button class="nav-tab" onclick="openAppPanel('about')">About</button>
+  </nav>
+</div>
+
+<div class="adm-tabs">
+  <button class="adm-tab active" id="tab-btn-network" onclick="switchAdmTab('network')">Network Configuration</button>
+  <button class="adm-tab" id="tab-btn-config" onclick="switchAdmTab('config')">Config</button>
+  <span class="adm-tab-sep"></span>
+  <button class="adm-tab" id="tab-btn-software" onclick="switchAdmTab('software')">Software Versions</button>
+  <span class="adm-tab-sep"></span>
+  <button class="adm-tab" id="tab-btn-users" onclick="switchAdmTab('users')">Users</button>
+  <button class="adm-tab" id="tab-btn-usage" onclick="switchAdmTab('usage')">Usage Stats</button>
+</div>
+
+<!-- ── Tab 1: Network Configuration ──────────────────────────────────────── -->
+<div id="adm-pane-network" class="adm-pane active">
+  <div class="adm-main">
+
+    <!-- Global Dashboard Settings -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">Global Dashboard Settings</div>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:4px 0">
+        <div class="nc-field" style="max-width:260px">
+          <label>Correlation Window (seconds)
+            <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;margin-left:4px">— multi-station event matching</span>
+            <span class="gs-help" tabindex="0"
+                  title="Recommended: 1 second. Meteors last &lt;1 s at any single station so a 1 s window catches genuine multi-station coincidences without re-introducing the false pairings that a 10 s window produced (60 real events vs 79 with 10 s in testing). Increase only if you see obvious visual matches being missed."
+                  style="display:inline-block;margin-left:6px;width:14px;height:14px;border-radius:50%;border:1px solid var(--border);color:var(--muted);font-size:10px;line-height:12px;text-align:center;cursor:help">?</span>
+          </label>
+          <input type="number" id="gs-correlation-window" min="1" max="3600" step="1" value="1">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:18px">
+          <button class="settings-save-btn" onclick="saveGlobalSettings()">Save</button>
+          <span id="gs-status" class="nc-status" style="min-width:60px"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration Overview -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">Configuration Overview
+        <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:8px">dashboard_config.yaml</span>
+      </div>
+      <div id="overview-area"><div class="loading">Loading…</div></div>
+    </div>
+
+    <!-- Network Config Tool -->
+    <div class="card">
+      <div class="card-title" style="display:flex;align-items:center;gap:12px">
+        <span>Network Config Tool
+          <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:8px">Edit station and camera parameters</span>
+        </span>
+        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="settings-save-btn secondary" id="sync-rotate-btn"
+            title="Push rotate flag from dashboard_config.yaml to every station's live config.json. Repairs drift without waiting for a redeploy."
+            onclick="syncRotateAll(this)">⇅ Sync rotate flags</button>
+          <button class="settings-save-btn" style="white-space:nowrap"
+            onclick="openAddModal()">＋ Add Station</button>
+        </div>
+      </div>
+      <div id="nc-area"><div class="loading">Loading…</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Tab 2: Config ──────────────────────────────────────────────────────── -->
+<div id="adm-pane-config" class="adm-pane">
+  <iframe id="config-iframe" src="" style="width:100%;height:calc(100vh - 90px);border:none;display:block"></iframe>
+</div>
+
+<!-- ── Tab 3: Software Versions ──────────────────────────────────────────── -->
+<div id="adm-pane-software" class="adm-pane">
+  <div class="adm-main">
+    <div class="card">
+      <div class="card-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span>Software Version Overview</span>
+        <span id="sv-progress" style="font-size:11px;font-weight:400;color:var(--muted);margin-left:8px"></span>
+        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="settings-save-btn secondary" id="sv-refresh-btn" onclick="refreshAllVersions(this)">⟳ Refresh All</button>
+          <button class="settings-save-btn" id="sv-update-all-btn" onclick="updateAllStations(this)">⬆ Update All</button>
+        </div>
+      </div>
+      <div id="sv-area"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tab 4: Users ──────────────────────────────────────────────────── -->
+<div id="adm-pane-users" class="adm-pane">
+  <div class="adm-main">
+    <div class="card">
+      <div class="card-title" style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div>User Accounts</div>
+          <div style="font-size:11px;font-weight:400;color:var(--muted);margin-top:2px">Manage logins, roles, and station access</div>
+        </div>
+        <button class="settings-save-btn" style="margin-left:auto" onclick="usersOpenCreate()">＋ Add User</button>
+      </div>
+      <div id="users-area"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Usage Stats pane -->
+<div id="adm-pane-usage" class="adm-pane">
+  <div class="adm-main">
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div>Usage Statistics</div>
+          <div style="font-size:11px;font-weight:400;color:var(--muted);margin-top:2px">Feature engagement and per-user activity, derived from the access logs</div>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <label for="usage-range" style="font-size:11px;color:var(--muted)">Window</label>
+          <select id="usage-range" onchange="loadUsage()"
+            style="background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:5px 9px">
+            <option value="1">24 hours</option>
+            <option value="7" selected>7 days</option>
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+          </select>
+          <button class="settings-save-btn secondary" style="font-size:11px;padding:5px 11px" onclick="loadUsage()">⟳ Refresh</button>
+        </div>
+      </div>
+      <div id="usage-cards" class="usage-cards"></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">Daily Activity</div>
+      <div id="usage-daily" style="min-height:120px"><div class="loading">Loading…</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">Feature Usage</div>
+      <div id="usage-features"><div class="loading">Loading…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Per-User Activity</div>
+      <div id="usage-users"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- User Edit/Create Modal -->
+<div class="add-modal hidden" id="user-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)usersCloseModal()">
+  <div class="add-modal-inner" style="max-width:440px">
+    <div class="add-modal-title" id="user-modal-title">Add User</div>
+    <input type="hidden" id="user-modal-mode" value="create">
+    <input type="hidden" id="user-modal-orig-username" value="">
+    <div class="nc-grid" style="margin-bottom:12px">
+      <div class="nc-field">
+        <label>Username</label>
+        <input type="text" id="user-username" placeholder="e.g. jdoe_station01">
+      </div>
+      <div class="nc-field">
+        <label>Display Name</label>
+        <input type="text" id="user-displayname" placeholder="optional">
+      </div>
+      <div class="nc-field">
+        <label>Role</label>
+        <select id="user-role" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:5px 9px;width:100%" onchange="usersRoleChange()">
+          <option value="host">host</option>
+          <option value="visitor">visitor</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+      <div class="nc-field" id="user-stations-field">
+        <label>Stations</label>
+        <div id="user-stations-checks" style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px"></div>
+      </div>
+      <div class="nc-field" id="user-expires-field">
+        <label>Expires</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="datetime-local" id="user-expires" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:5px 9px;flex:1">
+          <button class="settings-save-btn secondary" style="font-size:11px;padding:3px 10px;white-space:nowrap" onclick="document.getElementById('user-expires').value=''" type="button">Never</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">Leave empty for no expiration</div>
+      </div>
+      <div class="nc-field">
+        <label id="user-password-label">Password</label>
+        <input type="password" id="user-password" placeholder="required for new users" autocomplete="new-password" minlength="14">
+      </div>
+    </div>
+    <div id="user-modal-note" class="hidden" style="font-size:11px;color:var(--muted);margin:4px 0 10px;line-height:1.4">Role, station, password and expiry changes take effect on this user's active session within a few seconds (on their next request) and at their next login.</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="settings-save-btn secondary" onclick="usersCloseModal()">Cancel</button>
+      <button class="settings-save-btn" onclick="usersSave()">Save</button>
+    </div>
+    <div id="user-modal-err" style="color:var(--red);font-size:11px;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- Reset Password Token Modal -->
+<div class="add-modal hidden" id="reset-pw-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)document.getElementById('reset-pw-modal').classList.add('hidden')">
+  <div class="add-modal-inner" style="max-width:420px">
+    <div class="add-modal-title">Password Reset Token</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Share this one-time token with the user. It expires in 24 hours. The user logs in with their username and this token as the password, then will be prompted to set a new password.</p>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+      <code id="reset-pw-token" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:9px 12px;font-size:12px;color:var(--green);word-break:break-all"></code>
+      <button class="settings-save-btn" style="white-space:nowrap" onclick="resetPwCopy()">Copy</button>
+    </div>
+    <div id="reset-pw-copy-msg" style="font-size:11px;color:var(--green);min-height:16px;margin-bottom:10px"></div>
+    <div style="text-align:right">
+      <button class="settings-save-btn secondary" onclick="document.getElementById('reset-pw-modal').classList.add('hidden')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Magic Login Link Modal -->
+<div class="add-modal hidden" id="magic-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)magicClose()">
+  <div class="add-modal-inner" style="max-width:480px">
+    <div class="add-modal-title">One-Click Login Link</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">
+      Generates a link that logs <strong id="magic-user-label"></strong> straight in — no password, no MFA.
+      The link itself is the credential, so share it over a trusted channel. It works until the account expires
+      and can be revoked at any time. Not available for admin accounts.
+    </p>
+    <div class="nc-field" style="margin-bottom:14px">
+      <label for="magic-days">Account active for (days from now)</label>
+      <input type="number" id="magic-days" min="1" max="3650" step="1" value="7"
+        style="width:120px">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="settings-save-btn" onclick="magicGenerate(this)">Generate link</button>
+      <button class="danger-btn" id="magic-revoke-btn" onclick="magicRevoke(this)" style="display:none">Revoke existing link</button>
+    </div>
+    <div id="magic-result" style="display:none">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <code id="magic-url" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:9px 12px;font-size:12px;color:var(--green);word-break:break-all"></code>
+        <button class="settings-save-btn" style="white-space:nowrap" onclick="magicCopy()">Copy</button>
+      </div>
+      <div id="magic-copy-msg" style="font-size:11px;color:var(--green);min-height:16px"></div>
+    </div>
+    <div id="magic-err" style="color:var(--red);font-size:11px;margin-top:8px;min-height:14px"></div>
+    <div style="text-align:right;margin-top:12px">
+      <button class="settings-save-btn secondary" onclick="magicClose()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Station Modal -->
+<div class="add-modal hidden" id="add-station-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeAddModal()">
+  <div class="add-modal-inner">
+    <div class="add-modal-title">Add Station</div>
+
+    <div class="nc-grid" style="margin-bottom:12px">
+      <div class="nc-field">
+        <label>Host Key</label>
+        <input type="text" id="add-host" placeholder="e.g. gmnro07">
+      </div>
+      <div class="nc-field">
+        <label>Tailscale IP</label>
+        <input type="text" id="add-ip" placeholder="100.x.x.x">
+      </div>
+      <div class="nc-field">
+        <label>Port</label>
+        <input type="number" id="add-port" value="7779" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'SF Mono',monospace;font-size:12px;padding:5px 9px;width:100%">
+      </div>
+      <div class="nc-field">
+        <label>Label</label>
+        <input type="text" id="add-label" placeholder="e.g. Station Vaslui">
+      </div>
+      <div class="nc-field">
+        <label>SSH User</label>
+        <input type="text" id="add-user" value="gmn">
+      </div>
+      <div class="nc-field">
+        <label>Jump Hosts (comma-separated)</label>
+        <input type="text" id="add-jump" placeholder="e.g. gmnro02">
+      </div>
+      <div class="nc-field">
+        <label>Latitude</label>
+        <input type="number" step="any" id="add-lat" placeholder="e.g. 46.648">
+      </div>
+      <div class="nc-field">
+        <label>Longitude</label>
+        <input type="number" step="any" id="add-lon" placeholder="e.g. 27.712">
+      </div>
+      <div class="nc-field" style="justify-content:flex-end">
+        <label>Proxy Media</label>
+        <label class="nc-toggle">
+          <input type="checkbox" id="add-proxy">
+          <span>Proxy all media through dashboard</span>
+        </label>
+      </div>
+      <div class="nc-field" style="justify-content:flex-end">
+        <label>Show on Map</label>
+        <label class="nc-toggle">
+          <input type="checkbox" id="add-show-on-map" checked>
+          <span>Display station on overview map</span>
+        </label>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <button class="settings-save-btn" onclick="autoDetect()" id="add-detect-btn">⟳ Auto-detect from station</button>
+      <div class="add-detect-status" id="add-detect-status"></div>
+    </div>
+
+    <div style="margin-bottom:8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px">
+      Cameras
+    </div>
+    <div style="margin-bottom:4px;display:grid;grid-template-columns:110px 1fr 70px 30px;gap:8px">
+      <span style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Code</span>
+      <span style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">IP</span>
+      <span style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Rotate</span>
+      <span></span>
+    </div>
+    <div id="add-cameras"></div>
+    <button class="settings-save-btn" style="margin-top:6px;font-size:11px" onclick="addCamRow()">＋ Add camera row</button>
+
+    <div style="display:flex;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);align-items:center">
+      <button class="settings-save-btn" onclick="saveAddStation(this)">&#10003; Save Station</button>
+      <button class="danger-btn" onclick="closeAddModal()">Cancel</button>
+      <span class="nc-status" id="add-save-status"></span>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="{{ url_for('static', filename='dashboard-admin.js', v=build_version) }}"></script>
+
+<script>
+// Register the Service Worker for shell caching.
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('/sw.js').catch(err => {
+    console.warn('SW registration failed', err);
+  });
+}
+</script>
+
+<div id="app-panel" class="app-panel" role="dialog" aria-modal="true" aria-hidden="true" onclick="appPanelClose(event)">
+  <div class="app-panel-inner">
+    <div class="app-panel-header">
+      <span id="app-panel-title" class="app-panel-title"></span>
+      <button class="cam-modal-close" aria-label="Close panel" onclick="appPanelClose(null)">&#x2715;</button>
+    </div>
+    <div id="app-panel-body"></div>
+  </div>
+</div>
+</body>
+</html>

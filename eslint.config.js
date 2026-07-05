@@ -1,0 +1,115 @@
+import js from '@eslint/js';
+
+const browserGlobals = {
+  window: 'readonly',
+  document: 'readonly',
+  navigator: 'readonly',
+  location: 'readonly',
+  fetch: 'readonly',
+  console: 'readonly',
+  setTimeout: 'readonly',
+  setInterval: 'readonly',
+  clearTimeout: 'readonly',
+  clearInterval: 'readonly',
+  requestAnimationFrame: 'readonly',
+  cancelAnimationFrame: 'readonly',
+  alert: 'readonly',
+  confirm: 'readonly',
+  URL: 'readonly',
+  URLSearchParams: 'readonly',
+  AbortController: 'readonly',
+  AbortSignal: 'readonly',
+  Blob: 'readonly',
+  EventSource: 'readonly',
+  File: 'readonly',
+  FileReader: 'readonly',
+  FormData: 'readonly',
+  Headers: 'readonly',
+  Request: 'readonly',
+  Response: 'readonly',
+  HTMLElement: 'readonly',
+  HTMLVideoElement: 'readonly',
+  Image: 'readonly',
+  Event: 'readonly',
+  KeyboardEvent: 'readonly',
+  MouseEvent: 'readonly',
+  MutationObserver: 'readonly',
+  ResizeObserver: 'readonly',
+  IntersectionObserver: 'readonly',
+  performance: 'readonly',
+  getComputedStyle: 'readonly',
+  matchMedia: 'readonly',
+  localStorage: 'readonly',
+  sessionStorage: 'readonly',
+  history: 'readonly',
+  atob: 'readonly',
+  btoa: 'readonly',
+  structuredClone: 'readonly',
+  queueMicrotask: 'readonly',
+};
+
+const cdnGlobals = {
+  L: 'readonly',
+};
+
+export default [
+  {
+    files: ['dashboard/static/**/*.js'],
+    ignores: ['dashboard/static/sw.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...browserGlobals, ...cdnGlobals },
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      'no-undef': 'error',
+      'no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_|^e$|^err$',
+      }],
+      'no-redeclare': 'error',
+      'no-empty': 'warn',
+      'no-control-regex': 'off',
+    },
+  },
+  {
+    files: ['dashboard/static/sw.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        self: 'readonly',
+        caches: 'readonly',
+        fetch: 'readonly',
+        console: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        URL: 'readonly',
+        Headers: 'readonly',
+      },
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      'no-undef': 'error',
+      'no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_|^e$|^err$',
+      }],
+      'no-empty': 'warn',
+    },
+  },
+  {
+    files: ['.eslint-tmp/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: { ...browserGlobals, navigator: 'readonly' },
+    },
+    rules: {
+      'no-undef': 'error',
+    },
+  },
+];

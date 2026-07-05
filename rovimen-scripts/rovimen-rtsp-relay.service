@@ -1,0 +1,24 @@
+[Unit]
+Description=ROVIMEN RTSP relay (MediaMTX) - single shared camera pull for RMS + color capture
+Documentation=https://github.com/bluenviron/mediamtx
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=gmn
+Group=gmn
+# Loopback-only relay: pulls each camera main stream ONCE and fans it out to
+# RMS detection + color capture over localhost, so a slow camera link carries
+# a single RTSP stream instead of two. setup_rtsp_relay.sh localises the paths
+# below to the station user's $HOME at install time.
+ExecStart=/home/gmn/rovimen_scripts/bin/mediamtx /home/gmn/rovimen_scripts/mediamtx.yml
+Restart=always
+RestartSec=5
+# Detection reads through this relay -- keep it responsive, but bounded.
+Nice=-5
+MemoryMax=512M
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

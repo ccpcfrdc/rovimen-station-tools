@@ -1,0 +1,38 @@
+correlation_window_s: 1
+station_api_port: 7779
+stations:
+  test_station_1:
+    cameras:
+    - code: TST001
+      label: 'North'
+      cam_ip: 127.0.0.1
+      rotate: false
+      rtsp_url: rtsp://127.0.0.1:554/stream0
+    - code: TST002
+      label: 'East'
+      cam_ip: 127.0.0.1
+      rotate: false
+      rtsp_url: rtsp://127.0.0.1:554/stream1
+    ip: 127.0.0.1
+    jump_hosts: []
+    label: Test Station Alpha
+    lat: 52.52
+    lon: 13.405
+    proxy_media: false
+    public_tabs: []
+    ssh_user: test
+  test_station_2:
+    cameras:
+    - code: TST003
+      label: 'South'
+      cam_ip: 127.0.0.1
+      rotate: false
+      rtsp_url: rtsp://127.0.0.1:554/stream0
+    ip: 127.0.0.1
+    jump_hosts: []
+    label: Test Station Beta
+    lat: 44.43
+    lon: 26.1
+    proxy_media: false
+    public_tabs: []
+    ssh_user: test

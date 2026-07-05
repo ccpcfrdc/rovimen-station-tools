@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ROVIMEN Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-video-modal.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-multi-det-modal.css', v=build_version) }}">
+</head>
+<body>
+
+<header>
+  <a href="/" class="nav-logo">ROVIMEN</a>
+  <nav class="main-nav">
+    <a href="/" class="nav-tab">Stations</a>
+    <a href="/events" class="nav-tab">Detections</a>
+    <a href="/highlights" class="nav-tab">Highlights</a>
+    <a href="/showers" class="nav-tab">Showers</a>
+    <a href="/social" class="nav-tab nav-tab-admin" id="logo-dd-social" style="display:none">Social</a>
+    <a href="/admin" class="nav-tab nav-tab-admin" id="logo-dd-admin" style="display:none">Admin</a>
+    <button class="nav-tab" onclick="openAppPanel('about')">About</button>
+  </nav>
+  <div class="station-dropdown-wrapper" id="station-dropdown-wrapper"></div>
+  <div class="hdr-right">
+    <span class="hdr-clock-group"><span class="hdr-clock-label">Current Time:</span><span id="utc-clock" class="hdr-clock"></span></span>
+    <span id="next-capture" class="hdr-next-capture" style="display:none"></span>
+    <span id="ts">&mdash;</span>
+    <button class="hdr-btn" id="refresh-btn" onclick="refreshCurrent()">Refresh</button>
+    <span id="auth-area"></span>
+  </div>
+</header>
+
+<div class="sub-tabs" role="tablist" aria-label="Station sections">
+  <button class="sub-tab active" id="tab-btn-rms" role="tab"
+          aria-selected="true"  aria-controls="pane-rms"
+          onclick="switchTab('rms',this)">RMS / Detection</button>
+  <button class="sub-tab" id="tab-btn-videodb" role="tab"
+          aria-selected="false" aria-controls="pane-videodb"
+          onclick="switchTab('videodb',this)">Video DB</button>
+  <button class="sub-tab" id="tab-btn-fdp" role="tab"
+          aria-selected="false" aria-controls="pane-fdp"
+          onclick="switchTab('fdp',this)">Final Data Products</button>
+  <button class="sub-tab" id="tab-btn-archive" role="tab"
+          aria-selected="false" aria-controls="pane-archive"
+          onclick="switchTab('archive',this)">Archive</button>
+  <button class="sub-tab" id="tab-btn-settings" role="tab"
+          aria-selected="false" aria-controls="pane-settings"
+          onclick="switchTab('settings',this)">Station Admin</button>
+</div>
+
+<main>
+  <div id="pane-rms" class="tab-pane active" role="tabpanel" aria-labelledby="tab-btn-rms"></div>
+  <div id="pane-fdp" class="tab-pane" role="tabpanel" aria-labelledby="tab-btn-fdp"></div>
+  <div id="pane-videodb"  class="tab-pane" role="tabpanel" aria-labelledby="tab-btn-videodb">
+    <div class="vdb-sticky-header">
+    <div class="card vdb-filter-card">
+      <div class="card-title">Video Database</div>
+      <div class="vdb-filters">
+        <div class="vdb-filter-group">
+          <label>Camera</label>
+          <div id="vdb-camera" class="cam-btns"></div>
+          <span id="vdb-cam-pointing"></span>
+        </div>
+        <div class="vdb-filter-right">
+          <select id="vdb-night" onchange="vdbOnNightChange()"></select>
+          <label class="vdb-toggle-label">
+            <input type="checkbox" id="vdb-locked-only" onchange="vdbOnLockedOnlyChange()">
+            <span>Locked only</span>
+          </label>
+          <button class="vdb-toggle-label" id="vdb-sort-btn" onclick="vdbToggleSort()" style="cursor:pointer">Newest first &#9660;</button>
+        </div>
+      </div>
+      <div class="vdb-time-section">
+        <div class="vdb-time-header">
+          <label>Time range (UTC)</label>
+          <span id="vdb-time-label">
+            <input type="text" id="vdb-time-start" class="vdb-time-input" maxlength="5"
+                   value="12:00" autocomplete="off" spellcheck="false"
+                   onchange="vdbTimeInputChange('start')"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+                   onfocus="this.select()">
+            <span class="vdb-time-arrow">&rarr;</span>
+            <input type="text" id="vdb-time-end" class="vdb-time-input" maxlength="5"
+                   value="12:00" autocomplete="off" spellcheck="false"
+                   onchange="vdbTimeInputChange('end')"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+                   onfocus="this.select()">
+            <span class="vdb-time-suffix">UTC</span>
+          </span>
+          <span class="vdb-moon-icon" id="vdb-moon-icon" title=""></span>
+        </div>
+        <div class="vdb-slider-wrap">
+          <canvas id="vdb-density-canvas" height="9"></canvas>
+          <div id="vdb-midnight-label"></div>
+          <input type="range" id="vdb-slider-start" min="0" max="1440" value="0"
+                 oninput="vdbSliderInput('start')">
+          <input type="range" id="vdb-slider-end" min="0" max="1440" value="1440"
+                 oninput="vdbSliderInput('end')">
+        </div>
+        <div class="vdb-slider-ticks">
+          <span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span>
+          <span>00:00</span><span>03:00</span><span>06:00</span><span>09:00</span><span>12:00</span>
+        </div>
+      </div>
+      <div class="vdb-toolbar">
+        <span id="vdb-status" class="vdb-status"></span><span id="vdb-live-badge" class="vdb-live-badge" style="display:none">&#9679; live</span>
+        <div class="vdb-zoom-row">
+          <span title="Smaller">&#9723;</span>
+          <input type="range" id="vdb-zoom" min="120" max="480" value="200"
+                 oninput="vdbUpdateZoom(this.value)" title="Thumbnail size">
+          <span title="Larger">&#9724;</span>
+        </div>
+    </div>
+    </div><!-- end vdb-filter-card -->
+    </div><!-- end vdb-sticky-header -->
+    <div id="vdb-results"></div>
+  </div>
+  <div id="pane-archive"  class="tab-pane" role="tabpanel" aria-labelledby="tab-btn-archive"></div>
+  <div id="pane-settings" class="tab-pane" role="tabpanel" aria-labelledby="tab-btn-settings"></div>
+</main>
+
+<!-- Camera expand modal -->
+<div id="cam-modal" class="cam-modal" onclick="closeCamModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="cam-modal-title" aria-hidden="true">
+  <div class="cam-modal-inner">
+    <div class="cam-modal-header">
+      <span class="cam-modal-title" id="cam-modal-title"></span>
+      <a id="cam-modal-dl" class="vdb-dl-btn" style="margin-left:auto;margin-right:8px" download>&#8595; Download</a>
+      <button class="cam-modal-close" onclick="closeCamModal(null)" aria-label="Close live feed">Close</button>
+    </div>
+    <img id="cam-modal-img" class="cam-modal-img" alt="Live feed" decoding="async">
+  </div>
+</div>
+
+<!-- Stack modal -->
+<div id="stack-modal" class="cam-modal" onclick="stackCloseModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="stack-modal-title" aria-hidden="true">
+  <div class="cam-modal-inner" style="max-width:960px">
+    <div class="cam-modal-header">
+      <button class="modal-nav-btn" onclick="stackNavModal(-1)" aria-label="Previous stack">&#8592;</button>
+      <span class="cam-modal-title" id="stack-modal-title"></span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="modal-nav-btn" onclick="stackNavModal(1)" aria-label="Next stack">&#8594;</button>
+        <a id="stack-modal-dl" class="vdb-dl-btn" download>&#8595; Download</a>
+        <button class="cam-modal-close" onclick="stackCloseModal(null)" aria-label="Close stack">Close</button>
+      </div>
+    </div>
+    <img id="stack-modal-img" class="cam-modal-img" alt="Stack" decoding="async">
+  </div>
+</div>
+
+<!-- VDB video modal — shared VideoModal component -->
+<div id="vdb-modal-container"></div>
+
+<!-- VDB All Cams synced modal — shared VideoModal component (multi mode) -->
+<div id="vdb-sync-modal-container"></div>
+
+<!-- Archive video modal — shared VideoModal component -->
+<div id="arc-modal-container"></div>
+
+<!-- App panel (menu pages) -->
+<div id="app-panel" class="app-panel" onclick="appPanelClose(event)"
+     role="dialog" aria-modal="true" aria-labelledby="app-panel-title" aria-hidden="true">
+  <div class="app-panel-inner">
+    <div class="app-panel-header">
+      <span id="app-panel-title" class="app-panel-title"></span>
+      <button class="cam-modal-close" onclick="appPanelClose(null)" aria-label="Close panel">Close</button>
+    </div>
+    <div id="app-panel-body"></div>
+  </div>
+</div>
+
+<script>window.DEFAULT_STATION = {{ default_station|default('')|tojson }};</script>
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js":          "{{ url_for('static', filename='dashboard-common.js',          v=build_version) }}",
+    "/static/dashboard-video-modal.js":     "{{ url_for('static', filename='dashboard-video-modal.js',     v=build_version) }}",
+    "/static/dashboard-multi-det-modal.js": "{{ url_for('static', filename='dashboard-multi-det-modal.js', v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='twilight-slider.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard-rms.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard-vdb.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard-archive.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard-sysadmin.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard-station.js', v=build_version) }}"></script>
+
+<script>
+// Register the Service Worker for shell caching. Skip on plain HTTP — SW
+// only works over HTTPS or localhost. Source: dashboard/static/sw.js,
+// exposed at the origin root via the /sw.js Flask route.
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('/sw.js').catch(err => {
+    console.warn('SW registration failed', err);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "name": "rovimen-station-tools",
+  "version": "1.0.0",
+  "description": "Tools for the Global Meteor Network (GMN) RMS-based meteor observation stations.",
+  "type": "module",
+  "main": "vitest.config.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "lint": "node tools/extract-inline-js.js && eslint dashboard/static/ .eslint-tmp/",
+    "lint:fix": "node tools/extract-inline-js.js && eslint --fix dashboard/static/ .eslint-tmp/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alextudorica/rovimen-station-tools.git"
+  },
+  "keywords": [],
+  "author": "ROVIMEN",
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/alextudorica/rovimen-station-tools/issues"
+  },
+  "homepage": "https://github.com/alextudorica/rovimen-station-tools#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.61.0",
+    "eslint": "^9.39.4",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.8"
+  }
+}

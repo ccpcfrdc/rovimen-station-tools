@@ -1,0 +1,89 @@
+/* Detection grid view (issue #313): time-bucket rows x camera columns.
+   Reuses the events page dark tokens (--bg / --card / --border / --blue …). */
+
+.grid-toolbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  padding:12px 20px;background:var(--card);border-bottom:1px solid var(--border)}
+.grid-group{display:flex;flex-direction:column;gap:4px}
+.grid-group label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.grid-group input,.grid-group select{background:var(--bg);border:1px solid var(--border);
+  border-radius:4px;color:var(--text);font-family:'SF Mono',Consolas,monospace;
+  font-size:12px;padding:4px 9px;cursor:pointer;transition:border-color .15s}
+.grid-group input:focus,.grid-group select:focus{outline:none;border-color:var(--blue)}
+.grid-group input.invalid{border-color:var(--red)}
+.grid-hint{font-size:11px;color:var(--muted);margin-left:auto;max-width:340px;line-height:1.4}
+
+.grid-scroll{overflow:auto;max-height:calc(100vh - 180px);border:1px solid var(--border);
+  border-radius:8px;background:var(--bg)}
+
+.grid-table{border-collapse:separate;border-spacing:0;font-size:11px;width:max-content;min-width:100%}
+
+/* Sticky header rows + sticky first (time) column so the matrix stays readable
+   when it scrolls in both directions. */
+.grid-table thead th{position:sticky;top:0;z-index:3;background:var(--card)}
+.grid-station-row th{top:0}
+.grid-cam-row th{top:28px}
+.grid-corner{position:sticky;left:0;z-index:5;background:var(--card);text-align:left;
+  padding:6px 10px;color:var(--muted);font-weight:600;white-space:nowrap;
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+.grid-station-hdr{padding:5px 8px;font-size:11px;font-weight:700;color:var(--text);
+  text-align:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+.grid-cam-hdr{padding:5px 8px;font-size:10px;font-weight:600;color:var(--blue);
+  font-family:'SF Mono',Consolas,monospace;text-align:center;
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  white-space:nowrap}
+
+.grid-time-hdr{position:sticky;left:0;z-index:2;background:var(--card);
+  padding:6px 10px;text-align:left;white-space:nowrap;
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;gap:1px}
+.grid-time{font-family:'SF Mono',Consolas,monospace;font-weight:700;color:var(--text)}
+.grid-age{font-size:9px;color:var(--muted)}
+
+.grid-row:hover .grid-time-hdr{background:rgba(88,166,255,.06)}
+.grid-row-multi .grid-time-hdr{border-left:3px solid var(--blue)}
+
+.grid-cell{vertical-align:top;padding:3px;border-right:1px solid rgba(48,54,61,.5);
+  border-bottom:1px solid rgba(48,54,61,.5);min-width:74px}
+.grid-cell-empty{background:rgba(13,17,23,.4)}
+.grid-cell-multi{background:rgba(88,166,255,.07)}
+.grid-cell-inner{display:flex;flex-wrap:wrap;gap:3px}
+
+/* Thumb size tracks the shared zoom slider (--ev-card-w, set by evUpdateZoom);
+   default ~64x48 when the slider hasn't been touched yet. */
+.grid-thumb{position:relative;
+  width:calc(var(--ev-card-w, 110px) * 0.58);
+  height:calc(var(--ev-card-w, 110px) * 0.435);
+  border-radius:4px;overflow:hidden;
+  border:1px solid var(--border);cursor:pointer;background:rgba(22,27,34,.8);
+  transition:border-color .15s,transform .1s;flex-shrink:0}
+.grid-thumb:hover{border-color:var(--blue);transform:scale(1.06);z-index:1}
+.grid-thumb.multi{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.grid-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.grid-thumb-noimg{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
+  color:var(--muted);font-size:9px}
+.grid-thumb-time{position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.8));
+  font-size:8px;color:#e6edf3;font-family:'SF Mono',Consolas,monospace;
+  padding:3px 3px 1px;text-align:center}
+
+/* ── Footage mode ──────────────────────────────────────────────────────────
+   "All footage" transposes the grid: cameras down the Y axis, time across the
+   X axis. Each cell shows EVERY 20 s clip that camera recorded in that
+   time-bucket as a row of thumbnails (the window is capped to ~5 min). */
+
+.grid-banner{margin:0 0 10px;padding:9px 13px;border-radius:6px;font-size:12px;
+  color:#f0c674;background:rgba(240,198,116,.08);border:1px solid rgba(240,198,116,.35);
+  line-height:1.4}
+
+.grid-cell-detection{background:rgba(88,166,255,.06)}
+/* A cell containing a locked detection: ring its clip thumbs. */
+.grid-thumb.detection{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+
+.grid-cell-inner{align-items:flex-start}
+
+@media (max-width:640px){
+  .grid-hint{display:none}
+  .grid-thumb{width:54px;height:40px}
+}

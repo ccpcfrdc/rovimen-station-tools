@@ -1,0 +1,20 @@
+users:
+  admin_test:
+    display_name: Test Admin
+    password_hash: "scrypt:32768:8:1$AWQ3MTgJhQXgnpV5$52489c52e1d47eaa4b1f76fe2bc2b63ec651f7aa291c84ca51064bd54e9d40d3971ff48efe6bf9dd3b10ac652bdb4efb424d0181e36a7e8e62289e8b22041595"
+    role: admin
+    stations: []
+    require_totp: false
+  host_test:
+    display_name: Test Host
+    password_hash: "scrypt:32768:8:1$AWQ3MTgJhQXgnpV5$52489c52e1d47eaa4b1f76fe2bc2b63ec651f7aa291c84ca51064bd54e9d40d3971ff48efe6bf9dd3b10ac652bdb4efb424d0181e36a7e8e62289e8b22041595"
+    role: host
+    stations:
+    - test_station_1
+    require_totp: false
+  visitor_test:
+    display_name: Test Visitor
+    password_hash: "scrypt:32768:8:1$AWQ3MTgJhQXgnpV5$52489c52e1d47eaa4b1f76fe2bc2b63ec651f7aa291c84ca51064bd54e9d40d3971ff48efe6bf9dd3b10ac652bdb4efb424d0181e36a7e8e62289e8b22041595"
+    role: visitor
+    stations: []
+    require_totp: false

@@ -1,0 +1,1223 @@
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--card:#161b22;--border:#30363d;
+  /* --bg2 and --surface back card-like surfaces nested inside .card (RMS plots,
+     events.html sf-toolbar, overview map row). Without these declarations they
+     fell back to transparent, leaving cards invisible against the page bg. */
+  --bg2:#161b22;--surface:#161b22;
+  --text:#c9d1d9;--muted:#8b949e;
+  --green:#3fb950;--red:#f85149;--yellow:#d29922;--blue:#58a6ff;--purple:#bc8cff;
+}
+body{background:var(--bg);color:var(--text);font-family:'SF Mono',Consolas,Monaco,monospace;font-size:13px;min-height:100vh;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+
+/* ── Header ── */
+header{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;
+  display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:1001}
+.logo{font-size:15px;font-weight:700;color:var(--blue);letter-spacing:1px;flex-shrink:0}
+/* ── Station dropdown ── */
+.station-dropdown-wrapper{flex:1;display:flex;align-items:center;gap:6px}
+.station-nav-btn{background:none;border:1px solid var(--border);border-radius:6px;
+  color:var(--muted);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;
+  padding:4px 10px;line-height:1;transition:border-color .15s,color .15s,background .15s;
+  user-select:none}
+.station-nav-btn:hover{border-color:var(--blue);color:var(--blue);background:rgba(88,166,255,.06)}
+.station-nav-btn:disabled{opacity:.45;cursor:default}
+.station-nav-btn:disabled:hover{border-color:var(--border);color:var(--muted);background:none}
+.station-dropdown{position:relative;display:inline-block;min-width:200px}
+.station-dropdown-selected{display:flex;align-items:center;gap:8px;
+  background:none;border:1px solid var(--border);border-radius:6px;
+  color:var(--text);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;
+  padding:5px 12px;transition:border-color .15s;user-select:none}
+.station-dropdown-selected:hover,.station-dropdown.open .station-dropdown-selected{border-color:var(--blue)}
+.station-dropdown-selected .station-dd-label{color:var(--muted);font-weight:400;font-size:11px}
+.station-dropdown-arrow{margin-left:auto;color:var(--muted);font-size:10px}
+.station-dropdown-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  min-width:100%;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden}
+.station-dropdown.open .station-dropdown-menu{display:block}
+.station-option{display:flex;align-items:center;gap:8px;padding:8px 14px;
+  cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);transition:background .1s}
+.station-option:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.station-option.active{color:var(--blue);background:rgba(88,166,255,.08)}
+.station-option .station-dd-label{font-weight:400;font-size:11px}
+/* Status dot vocabulary — shape conveys state in addition to colour so
+   red-green colour-blind users can distinguish online/offline at a glance:
+     up      → filled green disc (online)
+     down    → red ring,  hollow centre (offline)
+     unknown → muted ring, hollow centre (no data yet) */
+.pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;
+  background:transparent;box-sizing:border-box;border:1.5px solid var(--muted)}
+.pill-dot.dot-up{background:var(--green);border-color:var(--green);box-shadow:0 0 5px var(--green)}
+.pill-dot.dot-down{background:transparent;border-color:var(--red)}
+.hdr-right{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted);flex-shrink:0}
+.hdr-clock-group{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.hdr-clock-label{font-size:11px;color:var(--muted)}
+.hdr-clock{font-family:monospace;font-size:11px;color:var(--text);letter-spacing:.04em;flex-shrink:0}
+.hdr-next-capture{display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;border-left:1px solid var(--border);padding-left:30px;margin-left:20px}
+.hdr-btn{background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);
+  color:var(--blue);font-family:inherit;font-size:12px;font-weight:600;
+  padding:5px 14px;border-radius:5px;cursor:pointer;letter-spacing:.3px}
+.hdr-btn:hover{background:rgba(88,166,255,.22)}
+.hdr-btn:disabled{opacity:.5;cursor:default}
+
+/* ── Logo + main nav tabs ── */
+.nav-logo{color:var(--text);font-size:15px;font-weight:800;letter-spacing:.5px;
+  text-decoration:none;flex-shrink:0;padding:0 4px 0 0}
+.nav-logo:hover{color:var(--blue)}
+.main-nav{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.nav-tab{display:inline-flex;align-items:center;padding:4px 12px;color:var(--muted);
+  font-size:11px;font-weight:500;text-decoration:none;border:none;background:none;
+  border-radius:4px;cursor:pointer;font-family:inherit;transition:color .12s,background .12s;
+  white-space:nowrap}
+.nav-tab:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.nav-tab.active{color:var(--blue);font-weight:600;background:rgba(88,166,255,.10)}
+
+/* ── App panel ── */
+.app-panel{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .18s}
+.app-panel.open{opacity:1;pointer-events:auto}
+.app-panel-inner{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  width:min(660px,92vw);max-height:82vh;overflow-y:auto;
+  transform:translateY(-12px);transition:transform .18s}
+.app-panel.open .app-panel-inner{transform:translateY(0)}
+.app-panel-header{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);margin-bottom:0}
+.app-panel-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:.4px}
+.app-panel-body-inner{padding:20px}
+.app-panel-body-inner h3{font-size:13px;font-weight:700;color:var(--blue);
+  margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px}
+.app-panel-body-inner p{color:var(--muted);font-size:12px;line-height:1.7;margin-bottom:12px}
+.app-panel-body-inner a{color:var(--blue);text-decoration:none}
+.app-panel-body-inner a:hover{text-decoration:underline}
+.app-panel-placeholder{padding:40px 20px;text-align:center;color:var(--muted);font-size:12px}
+.app-panel-inner{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.app-panel-inner::-webkit-scrollbar{width:6px}
+.app-panel-inner::-webkit-scrollbar-track{background:transparent}
+.app-panel-inner::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.app-panel-inner::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* ── Sub-tabs ── */
+.sub-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;
+  display:flex;gap:0;position:sticky;top:42px;z-index:1000}
+.sub-tabs::after{content:'';position:absolute;right:0;top:0;bottom:0;width:24px;
+  background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;z-index:1}
+.sub-tab{padding:9px 20px;background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;
+  transition:all .15s;letter-spacing:.4px}
+.sub-tab:hover{color:var(--text)}
+.sub-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* ── Inner tabs (System Admin sub-navigation) ── */
+.inner-tabs{display:flex;gap:0;flex-wrap:wrap;margin-bottom:18px;
+  border-bottom:1px solid var(--border)}
+.inner-tab{padding:7px 18px;background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;
+  transition:all .15s;white-space:nowrap}
+.inner-tab:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.inner-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:rgba(88,166,255,.07)}
+
+/* ── Camera buttons ── */
+.cam-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.cam-btn{background:none;border:1px solid var(--border);border-radius:4px;
+  color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;
+  padding:5px 14px;transition:all .15s}
+.cam-btn:hover{border-color:var(--blue);color:var(--text)}
+.cam-btn.active{background:rgba(88,166,255,.12);border-color:var(--blue);color:var(--blue)}
+#vdb-cam-pointing{display:block;font-size:11px;font-weight:600;font-family:'SF Mono',Consolas,monospace;
+  color:var(--text);letter-spacing:.4px;margin-top:4px;min-height:1em}
+.tl-cam-pointing{font-size:11px;font-weight:500;font-family:'SF Mono',Consolas,monospace;
+  color:var(--muted);margin-left:8px;letter-spacing:.3px}
+
+/* ── Layout ── */
+main{padding:20px 24px;max-width:1500px;margin:0 auto}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:18px 20px;margin-bottom:18px}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--muted);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px}
+.offline{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.25);border-radius:6px;
+  padding:20px;color:var(--red);text-align:center;margin-bottom:18px}
+
+/* Sky-coverage dome — full-width card at the top of the RMS pane. The PNG
+   is a square 1600x1600 hemisphere; constrain its display size so it never
+   dominates the viewport, but keep aspect ratio so cardinal labels stay
+   readable. Click opens the full-resolution PNG in a new tab. */
+.sky-dome-wrap{display:flex;justify-content:center;align-items:center}
+.sky-dome-img{max-width:min(560px,90%);width:100%;height:auto;
+  aspect-ratio:1/1;object-fit:contain;cursor:zoom-in;
+  background:#05050f;border-radius:6px;display:block}
+.no-data{color:var(--muted);font-size:12px;padding:16px 0;text-align:center}
+.loading{color:var(--muted);font-size:12px;padding:8px 0}
+
+/* ── Vitals ── */
+.vitals-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.vitals-item{}
+.vitals-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;
+  display:flex;justify-content:space-between}
+.vitals-val{font-size:22px;font-weight:700;margin-bottom:8px}
+.vitals-bar-track{height:4px;background:var(--border);border-radius:3px;overflow:hidden}
+.vitals-bar-fill{height:100%;border-radius:3px;transition:width .6s}
+.v-cpu{color:var(--blue)}.v-ram{color:var(--purple)}
+
+/* ── Services ── */
+.svc-group-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);
+  margin:12px 0 6px}.svc-group-label:first-child{margin-top:0}
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.svc-item{display:flex;align-items:center;gap:8px;padding:9px 12px;
+  background:var(--bg);border:1px solid var(--border);border-radius:6px}
+/* Service status dots — same shape vocabulary as .pill-dot. Filled green
+   disc = active service; red ring = failed/inactive; muted ring = unknown.
+   Shape difference avoids colour-only encoding (8% of male users are
+   red-green colour-blind). */
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-sizing:border-box;
+  background:transparent;border:1.5px solid var(--muted)}
+.dot-active{background:var(--green);border-color:var(--green);box-shadow:0 0 5px var(--green)}
+.dot-inactive,.dot-failed{background:transparent;border-color:var(--red)}
+.dot-unknown{background:transparent;border-color:var(--muted)}
+.svc-grid .svc-name{flex:1;font-size:12px;font-weight:500}
+.svc-cam{font-size:10px;color:var(--muted);background:rgba(255,255,255,.05);
+  padding:1px 6px;border-radius:3px}
+.svc-item.s-active{border-color:rgba(63,185,80,.18)}
+.svc-item.s-inactive,.svc-item.s-failed{border-color:rgba(248,81,73,.18)}
+
+/* ── Storage ── */
+.stbl{width:100%;border-collapse:collapse}
+.stbl th{text-align:left;padding:7px 12px;color:var(--muted);font-weight:500;
+  border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.stbl td{padding:9px 12px;border-bottom:1px solid rgba(48,54,61,.4)}
+.stbl tr:last-child td{border-bottom:none}
+.stbl tr:hover td{background:rgba(255,255,255,.02)}
+.c-folder{color:var(--blue);font-weight:500}
+.c-size{color:var(--yellow);font-weight:600}
+.disk-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.disk-meta{display:flex;justify-content:space-between;margin-bottom:6px;font-size:11px;color:var(--muted)}
+.disk-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.disk-fill{height:100%;border-radius:3px;transition:width .5s}
+.ov-plot-btn{font-size:11px;padding:4px 8px;font-family:inherit;cursor:pointer;
+  background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:4px;
+  color:var(--muted);transition:all .15s}
+.ov-plot-btn:hover{color:var(--text);background:rgba(255,255,255,.12);border-color:var(--muted)}
+
+/* ── Camera windows ── */
+.cam-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:14px}
+.cam-window{background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.cam-window-header{display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:var(--card);border-bottom:1px solid var(--border)}
+.cam-code{color:var(--green);font-weight:700;font-size:13px;flex:1}
+.cam-ip{font-size:10px;color:var(--muted)}
+.cam-live-btn{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.3);
+  color:var(--green);font-family:inherit;font-size:11px;font-weight:600;
+  padding:5px 12px;border-radius:5px;cursor:pointer;transition:all .15s}
+.cam-live-btn:hover{background:rgba(63,185,80,.22)}
+.cam-live-btn.stop{background:rgba(248,81,73,.12);border-color:rgba(248,81,73,.3);color:var(--red)}
+.cam-expand-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);
+  color:var(--muted);font-family:inherit;font-size:11px;padding:5px 10px;
+  border-radius:5px;cursor:pointer;transition:all .15s;margin-left:4px}
+.cam-expand-btn:hover{color:var(--text);border-color:var(--blue)}
+.cam-body{position:relative;background:#000;aspect-ratio:16/9}
+.cam-body img{width:100%;height:100%;object-fit:cover;display:block}
+.cam-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  color:#555;font-size:12px;background:#0a0a0a}
+.live-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#888;font-size:13px;background:rgba(0,0,0,.85);z-index:1;pointer-events:none;
+  text-align:center;padding:20px;box-sizing:border-box;word-break:break-word}
+.live-status.error{color:var(--red)}
+.cam-live-dot{width:8px;height:8px;border-radius:50%;background:var(--red);
+  animation:pulse 1s infinite;display:inline-block;margin-right:4px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Camera / stack expand modal ── */
+.cam-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);
+  z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.cam-modal.open{display:flex}
+.cam-modal-inner{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;width:min(1280px,96vw);max-height:92vh;display:flex;flex-direction:column}
+.cam-modal-header{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.cam-modal-title{color:var(--text);font-size:13px;font-weight:600}
+.cam-modal-close{background:none;border:1px solid var(--border);color:var(--text);font-size:12px;
+  cursor:pointer;padding:6px 14px;border-radius:5px;font-weight:500;white-space:nowrap}
+.cam-modal-close:hover{background:rgba(255,255,255,.1);border-color:var(--blue)}
+.cam-modal-img{width:100%;max-height:80vh;object-fit:contain;display:block;background:#000}
+.cam-modal.plot-mode .cam-modal-inner{width:min(960px,96vw)}
+.cam-modal.plot-mode .cam-modal-img{width:100%;height:68vh;max-height:68vh;object-fit:contain}
+
+/* ── Timelapses ── */
+.tl-controls{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tl-controls label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.tl-night-sel{background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:inherit;font-size:12px;padding:5px 10px;border-radius:5px;cursor:pointer}
+.tl-night-sel:focus{outline:none;border-color:var(--blue)}
+.tl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:14px}
+.tl-cam-block{background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.tl-cam-header{padding:8px 14px;border-bottom:1px solid var(--border);
+  font-size:12px;font-weight:600;color:var(--green);display:flex;justify-content:space-between;align-items:center}
+.tl-dl-btn{font-size:11px;font-weight:400;color:var(--blue);text-decoration:none}
+.tl-dl-btn:hover{text-decoration:underline}
+.tl-video{width:100%;aspect-ratio:16/9;display:block;background:#000}
+
+/* ── Final Data Products: last-frame tiles ──
+   One tile per camera, rolling colour chunk stack from /api/latest_frame.
+   Sized the same as the timelapse grid so the two cards line up visually
+   when both are open on the FDP tab. */
+.fdp-frame-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+.fdp-frame-tile{background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.fdp-frame-header{padding:8px 14px;border-bottom:1px solid var(--border);
+  font-size:12px;font-weight:600;color:var(--green);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fdp-cam-pointing{font-size:11px;font-weight:500;font-family:'SF Mono',Consolas,monospace;
+  color:var(--muted);margin-left:6px}
+.fdp-frame-stamp{font-size:10px;font-weight:400;color:var(--muted);font-family:'SF Mono',Consolas,monospace}
+.fdp-frame-img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#000;cursor:zoom-in}
+@media (max-width: 600px) {
+  .fdp-frame-grid{grid-template-columns:1fr}
+}
+
+/* ── Final Data Products: per-camera RMS night plots ──
+   One row per camera with the most recent night that has plots; well-known
+   plot files only (calibration/radiants/density/count/velocities/residuals). */
+.fdp-night-plots-cam-row{margin-bottom:14px}
+.fdp-night-plots-cam-header{font-size:12px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em}
+.fdp-night-plots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.fdp-night-plots-tile{background:var(--card-2,#111);border-radius:6px;overflow:hidden;cursor:zoom-in;border:1px solid var(--border,#222);transition:border-color .15s}
+.fdp-night-plots-tile:hover{border-color:var(--blue,#2563eb)}
+.fdp-night-plots-tile img{width:100%;height:auto;display:block;aspect-ratio:4/3;object-fit:contain;background:#000}
+.fdp-night-plots-tile-cap{font-size:10px;color:var(--muted);padding:4px 6px;background:var(--card-3,#0a0a0a);border-top:1px solid var(--border,#222)}
+
+/* ── Final Data Products: per-camera color meteor stacks ── */
+.fdp-color-stack-cam-row{margin-bottom:14px}
+.fdp-color-stack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
+
+/* Horizontal filmstrip rows for the Video DB "All cams" toggle. One row
+   per camera, scrollable on the X axis. Native scrollbar styled subtle.
+   The right-edge fade mask is a scroll affordance for iOS, where the
+   native scrollbar is hidden — without it first-time mobile users don't
+   discover the row is horizontally scrollable. */
+.vdb-cam-filmstrip{padding-bottom:6px;scrollbar-width:thin;scrollbar-color:var(--border,#222) transparent;
+  -webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 12px),transparent 100%);
+          mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 12px),transparent 100%)}
+.vdb-cam-filmstrip::-webkit-scrollbar{height:8px}
+.vdb-cam-filmstrip::-webkit-scrollbar-track{background:transparent}
+.vdb-cam-filmstrip::-webkit-scrollbar-thumb{background:var(--border,#222);border-radius:4px}
+.vdb-cam-filmstrip::-webkit-scrollbar-thumb:hover{background:var(--muted,#444)}
+
+/* ── RMS Detection ── */
+.rms-section{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:16px 18px;margin-bottom:12px}
+.rms-section-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.rms-cam-code{font-size:14px;font-weight:700;color:var(--green);white-space:nowrap}
+.rms-night-sel{background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:inherit;font-size:13px;padding:5px 10px;border-radius:5px;cursor:pointer;
+  flex:1;min-width:160px;max-width:280px}
+.rms-night-sel:focus{outline:none;border-color:var(--blue)}
+.rms-meteor-count{font-size:13px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.rms-filter-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:0 0 12px;
+  padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px}
+.rms-flt-label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;
+  text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.rms-flt-input,.rms-flt-select{background:var(--card);color:var(--text);
+  border:1px solid var(--border);border-radius:4px;padding:3px 6px;
+  font-size:12px;font-family:inherit}
+.rms-flt-input{width:54px;text-align:center;font-family:monospace}
+.rms-flt-input:hover,.rms-flt-select:hover{border-color:var(--blue)}
+.rms-flt-input:focus,.rms-flt-select:focus{outline:none;border-color:var(--blue)}
+.rms-flt-input.invalid{border-color:#e74c3c;color:#e74c3c}
+.rms-flt-btnrow{display:inline-flex;gap:4px;flex-wrap:wrap;align-items:center}
+/* Calendar night picker */
+.rms-cal-wrap{position:relative;display:inline-block}
+.rms-cal-btn{background:var(--card);color:var(--text);border:1px solid var(--border);
+  border-radius:4px;padding:4px 9px;font-size:12px;font-family:inherit;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:border-color .12s,color .12s}
+.rms-cal-btn:hover{border-color:var(--blue);color:var(--blue)}
+.rms-cal-btn.active{border-color:var(--blue);color:var(--blue)}
+.rms-cal-icon{font-size:13px}
+.rms-cal-chev{font-size:10px;color:var(--muted)}
+.rms-cal-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:1000;
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);padding:10px;min-width:240px;user-select:none}
+.rms-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.rms-cal-month{font-size:12px;font-weight:600;color:var(--text)}
+.rms-cal-nav{background:transparent;border:1px solid var(--border);color:var(--text);
+  border-radius:4px;padding:6px 12px;cursor:pointer;font-size:12px}
+.rms-cal-nav:hover:not([disabled]){border-color:var(--blue);color:var(--blue)}
+.rms-cal-nav[disabled]{opacity:.3;cursor:not-allowed}
+.rms-cal-dows,.rms-cal-grid{display:grid;grid-template-columns:repeat(7,28px);gap:2px}
+.rms-cal-dows{margin-bottom:4px}
+.rms-cal-dows span{font-size:10px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.rms-cal-cell{display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;font-size:12px;color:var(--text);border-radius:4px;cursor:pointer;
+  border:1px solid transparent}
+.rms-cal-cell:hover:not(.rms-cal-disabled):not(.rms-cal-empty){border-color:var(--blue)}
+.rms-cal-empty{visibility:hidden}
+.rms-cal-disabled{color:var(--muted);opacity:.45;cursor:not-allowed}
+.rms-cal-selected{background:var(--blue);color:#0d1117;font-weight:600}
+.rms-cal-selected:hover{border-color:var(--text)}
+.rms-cal-foot{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--border)}
+.rms-cal-count{font-size:11px;color:var(--muted);flex:1}
+.rms-cal-action{background:var(--bg);color:var(--text);border:1px solid var(--border);
+  border-radius:4px;padding:3px 10px;font-size:11px;font-family:inherit;cursor:pointer}
+.rms-cal-action:hover{border-color:var(--blue);color:var(--blue)}
+.rms-cal-go{background:var(--blue);color:#0d1117;border-color:var(--blue);font-weight:600}
+.rms-cal-go:hover{background:var(--text);border-color:var(--text);color:#0d1117}
+.rms-cal-empty-msg{font-size:12px;color:var(--muted);padding:20px;text-align:center}
+.rms-flt-btn{background:var(--card);color:var(--text);border:1px solid var(--border);
+  border-radius:4px;padding:3px 9px;font-size:12px;font-family:inherit;cursor:pointer;
+  transition:border-color .12s,background .12s,color .12s;white-space:nowrap}
+.rms-flt-btn:hover{border-color:var(--blue);color:var(--blue)}
+.rms-flt-btn.active{background:var(--blue);border-color:var(--blue);color:#0d1117;font-weight:600}
+.rms-flt-clear{background:transparent;color:var(--muted);border:1px solid var(--border);
+  border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit}
+.rms-flt-clear:hover{color:var(--text);border-color:var(--blue)}
+.rms-flt-summary{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap;font-style:italic}
+.rms-chunk-area .vdb-chunk-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+.rms-plots-section{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}
+.rms-plots-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;cursor:pointer;user-select:none;list-style:revert}
+.rms-plots-title::-webkit-details-marker{color:var(--muted)}
+details.rms-plots-section[open] .rms-plots-title{margin-bottom:10px}
+details.rms-plots-section:not([open]) .rms-plots-title{margin-bottom:0}
+/* Plots grid matches the video-thumbnail grid above (.vdb-chunk-grid) so plots
+   and clips line up at the same size. The RMS zoom slider (rmsUpdateZoom)
+   rescales both grids with the same minmax value. */
+.rms-plots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.rms-plot-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+  overflow:hidden;cursor:pointer;transition:border-color .15s;display:flex;flex-direction:column}
+.rms-plot-card:hover{border-color:var(--muted)}
+/* No fixed aspect-ratio — RMS plots have mixed ratios (stacks are 16:9, but
+   fieldsums/calibration_variation are ~10:7, photometry is wider). Let each
+   image keep its intrinsic ratio so nothing is letterboxed/stretched. */
+.rms-plot-card img{width:100%;height:auto;display:block;background:var(--bg)}
+.rms-plot-label{font-size:11px;font-weight:600;color:var(--text);padding:6px 8px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;flex-shrink:0;background:var(--bg2)}
+
+/* ── Settings ── */
+.settings-cam-block{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:16px 18px;margin-bottom:12px}
+.settings-cam-header{font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px}
+.settings-kv{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:12px}
+.settings-key{color:var(--muted);text-align:right;padding:2px 0}
+.settings-val{color:var(--text);padding:2px 0}
+.settings-section{font-size:10px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+pre.settings-raw{background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:14px;font-size:11px;color:var(--text);overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+.settings-edit-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:16px 18px;margin-bottom:12px}
+.settings-edit-card code{font-family:'SF Mono',Consolas,monospace;font-size:11px;
+  background:rgba(88,166,255,.1);color:var(--blue);padding:1px 5px;border-radius:3px}
+.settings-edit-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--muted);margin-bottom:12px}
+.settings-edit-grid{display:grid;grid-template-columns:auto 1fr auto;gap:6px 12px;
+  align-items:center;font-size:12px;margin-bottom:12px}
+.settings-edit-grid label{color:var(--muted);text-align:right}
+.settings-edit-grid input{background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:inherit;font-size:12px;padding:5px 10px;border-radius:5px;width:100%;max-width:120px}
+.settings-edit-grid input:focus{outline:none;border-color:var(--blue)}
+.unit{color:var(--muted);font-size:11px}
+/* ── Number spinner ── */
+.num-spinner{display:flex;align-items:center;gap:4px}
+.num-spinner input{width:70px;max-width:70px;text-align:center;flex-shrink:0}
+.spinner-btn{width:36px;height:36px;flex-shrink:0;background:rgba(255,255,255,.07);
+  border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;
+  font-size:14px;font-family:inherit;line-height:1;transition:background .12s;padding:0}
+.spinner-btn:hover{background:rgba(255,255,255,.15)}
+.cfg-select{background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:inherit;font-size:12px;padding:5px 10px;border-radius:5px;cursor:pointer}
+.cfg-select:focus{outline:none;border-color:var(--blue)}
+.settings-save-btn{background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);
+  color:var(--blue);font-family:inherit;font-size:12px;font-weight:600;
+  padding:5px 16px;border-radius:5px;cursor:pointer;transition:all .15s}
+.settings-save-btn:hover:not(:disabled){background:rgba(88,166,255,.22)}
+.settings-save-btn:disabled{opacity:.5;cursor:default}
+.settings-save-btn.secondary{background:rgba(255,255,255,.08);border-color:var(--border);color:var(--muted)}
+.settings-save-btn.secondary:hover:not(:disabled){background:rgba(255,255,255,.14);color:var(--text)}
+
+/* ── Service rows ── */
+.svc-list{display:flex;flex-direction:column;gap:2px;margin-bottom:12px}
+.svc-group{border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.svc-row{display:flex;align-items:center;gap:12px;padding:10px 14px;
+  background:var(--bg);transition:background .12s;border-bottom:1px solid var(--border)}
+.svc-row:last-child{border-bottom:none}
+.svc-row:hover{background:rgba(48,54,61,.5)}
+.svc-icon{font-size:15px;flex-shrink:0;width:20px;text-align:center}
+.svc-text{flex:1;min-width:0}
+.svc-name{font-size:12px;font-weight:600;color:var(--text)}
+.svc-desc{font-size:11px;color:var(--muted);margin-top:1px}
+.enc-secondary{font-size:11px;font-weight:400;color:var(--muted)}
+.svc-toggle{position:relative;flex-shrink:0}
+.svc-toggle input{opacity:0;width:0;height:0;position:absolute}
+.svc-toggle-track{display:block;width:34px;height:18px;border-radius:9px;
+  background:rgba(139,148,158,.2);border:1px solid var(--border);
+  cursor:pointer;transition:background .2s,border-color .2s;position:relative}
+.svc-toggle input:checked + .svc-toggle-track{background:rgba(63,185,80,.25);border-color:var(--green)}
+.svc-toggle-track::after{content:'';position:absolute;top:2px;left:2px;
+  width:12px;height:12px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.svc-toggle input:checked + .svc-toggle-track::after{transform:translateX(16px);background:var(--green)}
+.svc-saved-marker{font-size:11px;color:var(--green);margin-left:8px;animation:fadeout 2.5s forwards}
+.toggle-saved-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(30,35,40,.5);border-radius:9px;font-size:9px;font-weight:600;color:var(--green);
+  pointer-events:none;animation:fadeout 2s forwards;letter-spacing:.02em}
+@keyframes fadeout{0%,60%{opacity:1}100%{opacity:0}}
+.rovimen-disabled-banner{background:rgba(210,153,34,.15);border:1px solid var(--yellow);border-radius:8px;
+  padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--yellow);display:flex;align-items:center;gap:8px}
+
+/* ── Video Database ── */
+.vdb-sticky-header{position:sticky;top:74px;z-index:50;background:var(--bg);padding-top:6px}
+.vdb-filter-card{margin-bottom:0}
+.vdb-filters{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:12px}
+.vdb-filter-group{display:flex;flex-direction:column;gap:4px}
+.vdb-filter-group label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.vdb-filter-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+.vdb-filter-group select,.vdb-filter-right select{
+  background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:inherit;font-size:12px;padding:6px 10px;border-radius:5px;cursor:pointer;min-width:120px}
+.vdb-filter-group select:focus,.vdb-filter-right select:focus{outline:none;border-color:var(--blue)}
+.vdb-toggle-label{display:flex;align-items:center;gap:8px;cursor:pointer;
+  background:var(--bg);border:1px solid var(--border);border-radius:5px;
+  padding:6px 10px;font-size:12px;color:var(--muted);white-space:nowrap;
+  transition:border-color .15s,color .15s}
+.vdb-toggle-label:hover{border-color:var(--blue)}
+.vdb-toggle-label input{accent-color:var(--blue);width:14px;height:14px;cursor:pointer;margin:0;flex-shrink:0}
+.vdb-toggle-label:has(input:checked){border-color:var(--blue);color:var(--blue)}
+/* Time slider */
+.vdb-time-section{margin:8px 0 0}
+.vdb-time-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.vdb-time-header>label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+#vdb-time-label{font-size:13px;color:var(--blue);font-weight:600;font-family:monospace;
+  display:inline-flex;align-items:center;gap:6px}
+.vdb-time-input{font-family:monospace;font-size:13px;font-weight:600;color:var(--blue);
+  background:transparent;border:1px solid var(--border);border-radius:4px;
+  padding:2px 4px;width:54px;text-align:center}
+.vdb-time-input:hover{border-color:var(--blue)}
+.vdb-time-input:focus{outline:none;border-color:var(--blue);background:var(--card)}
+.vdb-time-input.invalid{border-color:#e74c3c;color:#e74c3c}
+.vdb-time-arrow,.vdb-time-suffix{color:var(--muted);font-weight:400}
+.vdb-slider-wrap{position:relative;height:32px;margin:22px 7px 0}
+.vdb-slider-wrap::before{content:'';position:absolute;left:0;top:50%;width:100%;height:14px;
+  transform:translateY(-50%);border-radius:999px;pointer-events:none;
+  background:var(--tl-gradient,
+    linear-gradient(to right,rgba(13,17,23,.5) 0%,rgba(13,17,23,.5) 22%,rgba(13,17,23,0) 22%,rgba(13,17,23,0) 74%,rgba(13,17,23,.5) 74%,rgba(13,17,23,.5) 100%),
+    linear-gradient(to right,#87ceeb 0%,#87ceeb 20%,#a8b870 22%,#a8b870 26%,#d4c040 28%,#d4c040 32%,#1a2c5e 34%,#1a2c5e 64%,#d4c040 66%,#d4c040 70%,#a8b870 72%,#a8b870 74%,#87ceeb 76%,#87ceeb 100%))}
+.vdb-slider-wrap::after{content:'';position:absolute;left:0;top:calc(50% + 8px);width:100%;height:6px;
+  border-radius:999px;pointer-events:none;z-index:2;
+  background:var(--moon-gradient,transparent)}
+.vdb-moon-icon{font-size:16px;line-height:1;cursor:default;margin-left:6px;flex-shrink:0}
+#vdb-density-canvas{position:absolute;left:0;top:calc(50% - 7px);width:100%;height:5px;
+  border-radius:999px;display:block;z-index:3}
+#vdb-midnight-label{position:absolute;left:50%;top:-10px;transform:translateX(-50%);
+  font-size:12px;color:var(--muted);font-family:monospace;white-space:nowrap;pointer-events:none}
+.vdb-slider-wrap input[type=range]{
+  position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;height:14px;
+  -webkit-appearance:none;appearance:none;
+  background:transparent;pointer-events:none;margin:0;padding:0;z-index:10}
+.vdb-slider-wrap input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;
+  background:var(--blue);border-radius:50%;cursor:ew-resize;
+  pointer-events:all;border:2px solid #0d1117;box-shadow:0 1px 4px rgba(0,0,0,.6);
+  margin-top:-2px}
+.vdb-slider-wrap input[type=range]::-moz-range-thumb{
+  width:18px;height:18px;background:var(--blue);border-radius:50%;
+  cursor:ew-resize;pointer-events:all;border:2px solid #0d1117;box-shadow:0 1px 4px rgba(0,0,0,.6)}
+#vdb-slider-end::-webkit-slider-thumb{background:var(--green)}
+#vdb-slider-end::-moz-range-thumb{background:var(--green)}
+.vdb-slider-ticks{display:flex;justify-content:space-between;margin-top:4px;
+  font-size:10px;color:var(--muted);font-family:monospace;padding:0 7px}
+/* Toolbar */
+.vdb-toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px}
+.vdb-status{font-size:12px;color:var(--muted)}
+.vdb-zoom-row{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+#vdb-zoom,.rms-zoom{width:90px;accent-color:var(--blue);cursor:pointer;vertical-align:middle}
+/* Grid */
+.vdb-chunk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.vdb-chunk-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;position:relative}
+.vdb-chunk-card:hover{border-color:var(--blue);transform:translateY(-2px)}
+.vdb-chunk-locked-detection{border:4px solid #e6a817}
+.vdb-chunk-locked-detection:hover{border-color:#f5c842}
+.vdb-chunk-locked-manual{border:4px solid #58a6ff}
+.vdb-chunk-locked-manual:hover{border-color:#79b8ff}
+.vdb-chunk-locked-detection .vdb-lock-btn,.vdb-chunk-locked-manual .vdb-lock-btn{top:3px;right:3px}
+.vdb-lock-btn{position:absolute;top:6px;right:6px;font-size:14px;z-index:2;
+  background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);border-radius:4px;
+  padding:2px 6px;cursor:pointer;color:#ccc;line-height:1.5}
+.vdb-lock-btn:not(:disabled):hover{background:rgba(0,0,0,.85);color:#fff}
+.vdb-lock-btn:disabled{cursor:default}
+.vdb-lock-btn .lock-ico,.vdb-ts-badge .lock-ico{display:block}
+.vdb-lock-btn--detection{background:rgba(210,160,0,.9);border-color:#f5c842;color:#1a1200}
+.vdb-lock-btn--detection:hover{background:rgba(210,160,0,.9)}
+.vdb-lock-btn--manual{background:rgba(50,110,220,.9);border-color:#58a6ff;color:#e8f0ff}
+.vdb-lock-btn--manual:not(:disabled):hover{background:rgba(60,130,255,.95);color:#fff}
+.vdb-chunk-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#111}
+.vdb-chunk-nostack{width:100%;aspect-ratio:16/9;background:#111;display:flex;
+  align-items:center;justify-content:center;color:var(--muted);font-size:16px}
+.vdb-chunk-meta{padding:7px 10px}
+.vdb-chunk-time{color:var(--blue);font-weight:600;font-size:13px}
+.vdb-chunk-time.vdb-time-stale{color:var(--red)}
+.vdb-chunk-size{font-size:13px;color:var(--muted);margin-top:2px}
+.det-meta{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:3px;font-size:11px;line-height:1.3}
+.det-mag{color:#f0c040;font-weight:600}
+.det-mag-fireball{color:#ff6b35}
+.det-mag-bright{color:#f0c040}
+.det-shower{color:#66ccff;font-weight:500}
+.det-spo{color:var(--muted)}
+.det-dur{color:var(--muted)}
+.det-angvel{color:var(--muted)}
+.det-modal-grid{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;line-height:1.6}
+.det-modal-label{color:var(--muted);font-weight:500;white-space:nowrap}
+.vdb-chunk-btns{display:flex;justify-content:space-between;align-items:stretch;margin-top:6px;gap:4px}
+.vdb-dl-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-family:inherit;
+  color:var(--muted);background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:4px;padding:6px 10px;text-decoration:none;transition:all .15s;white-space:nowrap}
+.vdb-dl-btn:hover{color:var(--text);background:rgba(255,255,255,.12);border-color:var(--muted)}
+.vdb-process-btn{display:flex;align-items:center;font-size:12px;font-family:inherit;
+  color:var(--muted);background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:4px;padding:6px 10px;cursor:pointer;transition:all .15s;white-space:nowrap;margin:0}
+.vdb-process-btn:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,.12);border-color:var(--muted)}
+.vdb-process-btn:disabled{opacity:.5;cursor:default}
+.vdb-process-btn--done{border-color:var(--green) !important;color:var(--green) !important;opacity:.85 !important;cursor:default}
+.modal-nav-btn{background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--text);
+  border-radius:5px;padding:4px 12px;font-size:16px;cursor:pointer;transition:background .15s}
+.modal-nav-btn:hover{background:rgba(255,255,255,.18)}
+
+/* ── Live badge ── */
+.vdb-live-badge{font-size:12px;color:var(--green);margin-left:10px;vertical-align:middle}
+.dawn-running-badge{font-size:11px;font-weight:600;color:#f59e0b;background:rgba(245,158,11,.12);
+  border:1px solid rgba(245,158,11,.35);border-radius:4px;padding:2px 8px;
+  animation:dawn-pulse 1.6s ease-in-out infinite}
+@keyframes dawn-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ── Range slider track — both engines need transparent track so the
+   gradient ::before pseudo-element shows through without gaps ── */
+.vdb-slider-wrap input[type=range]::-webkit-slider-runnable-track{background:transparent;height:14px;border:none}
+.vdb-slider-wrap input[type=range]::-moz-range-track{background:transparent;height:14px;border:none}
+
+/* ── Archived indicator ── */
+.vdb-chunk-archived{border:2px solid var(--green)}
+.vdb-chunk-archived:hover{border-color:#5bd06a}
+.vdb-archived-badge{position:absolute;top:6px;left:6px;font-size:9px;z-index:2;
+  background:rgba(63,185,80,.85);color:#fff;border-radius:3px;padding:1px 5px;
+  font-weight:600;letter-spacing:.3px;pointer-events:none}
+
+/* ── Expandable service blocks (settings tab) ── */
+.svc-block{border:1px solid var(--border);border-radius:7px;overflow:hidden;margin-bottom:8px}
+.svc-block .svc-row{border-bottom:none;border-radius:0}
+.svc-block .svc-row:hover{background:rgba(48,54,61,.5)}
+.svc-expand-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);
+  color:var(--muted);font-family:inherit;font-size:11px;padding:4px 10px;
+  border-radius:5px;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap}
+.svc-expand-btn:hover{color:var(--text);border-color:var(--blue)}
+.svc-expand-btn[aria-expanded="true"]{color:var(--blue);border-color:var(--blue);
+  background:rgba(88,166,255,.1)}
+.svc-panel{display:none;border-top:1px solid var(--border)}
+.svc-panel.open{display:block}
+.svc-panel-inner{padding:14px 16px;background:rgba(13,17,23,.6);display:flex;
+  flex-direction:column;gap:12px}
+.svc-panel-inner .settings-edit-grid{margin-bottom:0}
+.svc-panel-inner .svc-group{margin-bottom:0}
+
+/* ── Service restart button ── */
+.svc-restart-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);
+  color:var(--muted);font-size:14px;padding:2px 6px;border-radius:4px;cursor:pointer;
+  line-height:1;margin-left:auto;transition:all .15s;flex-shrink:0}
+.svc-restart-btn:hover{color:var(--blue);border-color:var(--blue);background:rgba(88,166,255,.1)}
+.svc-restart-btn:disabled{opacity:.5;cursor:default}
+
+/* ── Responsive ── */
+
+/* Tablet */
+@media(max-width:768px){
+  header{padding:8px 12px;gap:8px;flex-wrap:wrap}
+  .logo{font-size:14px}
+  .station-bar{order:3;width:100%;gap:6px}
+  .station-pill{padding:4px 10px;font-size:11px}
+  .hdr-right{gap:6px}
+  .sub-tabs{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .sub-tab{padding:8px 12px;font-size:11px;white-space:nowrap}
+  main{padding:12px}
+  .card{padding:14px}
+  .cam-grid,.tl-grid{grid-template-columns:1fr}
+  .vdb-chunk-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important}
+  .vitals-grid{grid-template-columns:1fr}
+  .settings-edit-grid{grid-template-columns:auto 1fr auto}
+  .rms-section-header{gap:8px}
+  .rms-night-sel{min-width:120px}
+  .vdb-filters{gap:8px}
+  .cam-modal-inner{width:98%;max-width:none}
+  /* Header right-side gets crowded on tablets too. Tighten its gap and
+     drop the "Next RMS capture window" divider — keep its content but
+     drop the heavy 30 px left padding so the row doesn't overflow. */
+  .hdr-next-capture{padding-left:10px;margin-left:6px;font-size:10px}
+  .hdr-clock-label{font-size:10px}
+  .hdr-btn{padding:5px 10px;font-size:11px}
+}
+
+/* Phone */
+@media(max-width:540px){
+  /* Bump body text from 13px to 14px for readability without zoom.
+     Inputs override to 16px below to prevent iOS auto-zoom on focus. */
+  body{font-size:14px}
+  .vdb-sticky-header{position:static}
+  /* Stack the header vertically on phones. The desktop header is a single
+     row with logo + station selector + clock + Refresh + auth; that
+     overflows at 375 px. flex-wrap puts each block on its own line and
+     the hdr-right group pushes to the right side. */
+  header{padding:6px 10px;gap:6px;flex-wrap:wrap;align-items:center}
+  .logo{font-size:13px}
+  .main-nav{gap:1px}
+  .nav-tab{padding:4px 8px;font-size:10px}
+  /* Station selector spans the full row beneath the logo so it has room
+     for the prev / dropdown / next controls. */
+  .station-dropdown-wrapper{order:3;width:100%;flex-basis:100%;margin-top:2px}
+  .station-dropdown{flex:1;min-width:0}
+  .station-dropdown-selected{width:100%;font-size:12px;padding:6px 10px;min-height:36px}
+  .station-nav-btn{min-width:36px;min-height:36px;padding:0;font-size:14px}
+  .hdr-right{margin-left:auto;gap:6px;font-size:10px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:1;min-width:0}
+  .hdr-clock-group{display:none}
+  .station-pill{padding:3px 8px;font-size:10px}
+  .pill-label{display:none}
+  /* Drop the "Current Time:" label and the long "Next RMS capture window"
+     row on phones — the data still surfaces inside the dashboard cards. */
+  .hdr-clock-label{display:none}
+  .hdr-clock{font-size:10px}
+  .hdr-next-capture{display:none!important}
+  .hdr-right #ts{display:none}
+  .hdr-btn{padding:6px 10px;font-size:11px;min-height:32px}
+  /* Sub-tabs are a horizontal pill row across the top; make them
+     finger-friendly and scrollable on phones. */
+  .sub-tabs{top:0;padding:0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;padding-bottom:2px}
+  .sub-tabs::-webkit-scrollbar{display:none}
+  .sub-tab{padding:10px 12px;font-size:11px;min-height:42px;white-space:nowrap}
+  main{padding:8px}
+  .card{padding:10px 12px;margin-bottom:10px}
+  .card-title{font-size:10px;margin-bottom:10px}
+  .cam-grid,.tl-grid{grid-template-columns:1fr}
+  .svc-grid{grid-template-columns:1fr}
+  .stbl th,.stbl td{padding:5px 6px;font-size:11px}
+  .vdb-chunk-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))!important}
+  .vdb-chunk-meta{padding:5px 8px}
+  .vdb-chunk-time{font-size:12px}
+  .cam-modal-inner{width:100%;border-radius:0}
+  .vdb-filters{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+  .vdb-filter-group{width:100%}
+  .vdb-filter-group .cam-btns{margin-bottom:0}
+  .vdb-zoom-row{display:none}
+  .vdb-filter-right{margin-left:0;flex-wrap:wrap;gap:6px}
+  .vdb-filter-right select{flex:1;min-width:0;box-sizing:border-box}
+  .vdb-filter-right .vdb-toggle-label{flex:1;box-sizing:border-box}
+  .vdb-filter-right #vdb-sort-btn{flex:1;box-sizing:border-box;justify-content:center}
+  .vdb-time-section{margin-top:4px}
+  .vdb-slider-wrap{margin:16px 4px 0}
+  .vdb-slider-ticks{font-size:8px;padding:0 4px}
+  .vdb-toolbar{flex-direction:column;align-items:stretch;gap:6px}
+  .vdb-zoom-row{justify-content:center}
+  .rms-section{padding:10px 12px}
+  .rms-section-header{flex-direction:column;align-items:flex-start}
+  .rms-night-sel{width:100%;max-width:none}
+  .settings-edit-grid{grid-template-columns:1fr;gap:4px 0}
+  .settings-edit-grid label{text-align:left}
+  .tl-grid{grid-template-columns:1fr}
+  .tl-controls{flex-direction:column;gap:6px}
+
+  /* Mobile touch-target hardening for date / time / range pickers.
+     Two problems we fix here at the same time:
+       1. Default native input thumbs/calendar icons are tiny — < 32 px
+          targets violate Apple HIG (44 px) and lose touches.
+       2. Range / date inputs that sit flush against the screen edge
+          collide with the iOS swipe-back and Android edge-back gestures,
+          so a tap meant to scrub goes "back a page" instead. Keep
+          critical interactive widgets ≥ 14 px from the screen edge by
+          giving their wrappers padding-inline. */
+  input[type="date"], input[type="time"]{
+    padding:10px 12px;
+    font-size:16px;                /* prevents iOS auto-zoom on focus */
+    min-height:44px;
+    box-sizing:border-box;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator{
+    transform:scale(1.4);
+    margin-left:6px;
+    cursor:pointer;
+  }
+  input[type="range"]{
+    height:36px;
+    cursor:pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:26px;height:26px;border-radius:50%;
+    background:var(--blue,#2563eb);
+    border:2px solid #fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:26px;height:26px;border-radius:50%;
+    background:var(--blue,#2563eb);
+    border:2px solid #fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  /* Re-center the larger mobile thumb (26px) on the 14px night-slider track. */
+  .vdb-slider-wrap input[type=range]::-webkit-slider-thumb,
+  .ev-slider-wrap input[type=range]::-webkit-slider-thumb{margin-top:-6px}
+  /* Edge-buffer for critical sliders/scrubbers so the swipe-back gesture
+     doesn't fire when the user tries to grab a thumb. */
+  .vdb-slider-wrap, .ev-slider-wrap, .ev-unified-bar,
+  .ev-scrubber-wrap, .vdb-scrubber-wrap,
+  .vdb-toolbar, .vdb-filter-right{
+    padding-inline:14px;
+    box-sizing:border-box;
+  }
+  /* RMS calendar button — bump to 44 px tap target */
+  .rms-cal-btn{padding:10px 14px;font-size:13px;min-height:44px}
+  .ov-plot-btn{padding:6px 10px}
+
+  /* P1-23: modal close + nav buttons must clear the 44 px iOS / 48 dp
+     Android tap-target floor on mobile. cam-modal-close defaults to
+     ~28×22 px and modal-nav-btn to ~36×28 px — both well below the
+     floor and they are the most-tapped clip-modal controls. */
+  .cam-modal-close{
+    min-width:44px;min-height:44px;
+    padding:0;font-size:20px;line-height:1;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .modal-nav-btn{
+    min-width:44px;min-height:44px;
+    padding:0;font-size:18px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+
+  /* P1-24: RMS calendar cells default to 28×28 — bump to 36×36 so the
+     night picker doesn't mis-tap adjacent days on a phone. */
+  .rms-cal-dows,.rms-cal-grid{grid-template-columns:repeat(7,36px)}
+  .rms-cal-cell{width:36px;height:36px;font-size:13px}
+
+  /* P1-25: settings spinner buttons default to 26×26 — bump to 36×36
+     so the camera-config increment/decrement doesn't mis-fire silently
+     and trigger an unwanted config change. */
+  .spinner-btn{width:44px;height:44px;font-size:16px}
+
+  /* ── Modal sheet treatment (P2-1) ─────────────────────────────────
+     Desktop modals are 660–1280 px centred dialogs that float over the
+     page. On a 375 px phone they need to behave like full-screen
+     sheets: fill the viewport, drop the rounded floating look,
+     extend to the safe-area inset so the close button doesn't hide
+     behind the iOS home indicator. */
+  .cam-modal{padding:0;align-items:stretch;justify-content:stretch}
+  .cam-modal-inner{width:100%;max-width:none;border-radius:0;
+    max-height:100vh;max-height:100dvh}
+  .cam-modal-img,.cam-modal.plot-mode .cam-modal-img{max-height:calc(100vh - 56px);
+    max-height:calc(100dvh - 56px);object-fit:contain}
+  .cam-modal-header{padding:8px 12px}
+  .cam-modal-title{font-size:12px;flex:1;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+
+  /* App panel (about / GMN / stats / network in-modal pages) — fill the
+     screen instead of a floating centred 660 px dialog. */
+  .app-panel{padding:0}
+  .app-panel-inner{width:100%;max-width:none;border-radius:0;max-height:100vh;
+    max-height:100dvh;height:100vh;height:100dvh;display:flex;flex-direction:column}
+  .app-panel-body-inner{padding:14px}
+  .app-panel-body-inner p{font-size:13px}
+
+  /* ── Forms & buttons that should be touch-sized on phone ──────────
+     Default inputs on desktop are 12 px font; iOS Safari auto-zooms
+     to any focused input below 16 px font. Pin form inputs at 16 px
+     and tap-target height 38 px to stop the zoom + give a usable
+     touch target. */
+  input[type="text"],input[type="password"],input[type="email"],
+  input[type="number"],input[type="search"],input[type="tel"],
+  input[type="url"],select,textarea{font-size:16px;min-height:38px;box-sizing:border-box}
+  /* But the dashboard's existing compact filter selects look terrible
+     full-height — keep them at 38 px but allow font 14 px so a
+     "HH:MM" 5-char field doesn't overflow at the wider 16 px size.
+     The auto-zoom kicks in below 16 px on TEXT-LIKE inputs, not on
+     <select> menus, so a 14 px select is safe. */
+  .log-select,.cfg-select,.rms-night-sel,.tl-night-sel,
+  .vdb-filter-group select,.vdb-filter-right select,
+  .rms-flt-input,.rms-flt-select{font-size:14px}
+  /* RMS night/cam selector inputs and the small filter spinners are
+     16 px to avoid auto-zoom on focus — but keep them narrow so the
+     filter row still fits. */
+  .vdb-time-input{font-size:16px;min-height:36px;width:64px}
+
+  /* Save / action buttons — full-width on mobile so they're easy to
+     hit. The settings-edit-card has buttons appended via JS that
+     default to inline auto-width. */
+  .settings-save-btn{min-height:40px;padding:8px 14px;font-size:13px}
+  .settings-edit-grid + .settings-save-btn,
+  .settings-edit-grid + div > .settings-save-btn{width:100%}
+
+  /* Sysadmin "Configuration" tab: stack the settings-edit-grid label
+     above the input on phones so labels aren't truncated and inputs
+     get full width. settings-edit-grid is `auto 1fr auto`; collapse
+     to one column. */
+  .settings-edit-grid{grid-template-columns:1fr;gap:6px 0;row-gap:6px}
+  .settings-edit-grid label{text-align:left;font-size:11px;
+    text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .settings-edit-grid input{max-width:none;width:100%;font-size:16px}
+  .num-spinner{width:100%;justify-content:flex-start}
+  .num-spinner input{width:90px;max-width:90px;font-size:16px}
+
+  /* Vitals + storage cards on mobile: single column, larger numbers. */
+  .vitals-val{font-size:20px}
+  .stbl th,.stbl td{padding:5px 6px;font-size:11px}
+
+  /* Cameras / settings inner grids should collapse to one column. */
+  .svc-grid{grid-template-columns:1fr}
+  /* Service row close packed on desktop → relax padding so toggles
+     and restart buttons don't collide. */
+  .svc-row{padding:9px 10px;gap:8px}
+  .svc-name{font-size:12px}
+  .svc-desc{font-size:10px}
+  .svc-expand-btn,.svc-restart-btn{min-height:36px}
+
+  /* RMS plots grid — desktop minmax is 200 px. On a 375 px phone
+     that lets one plot per row only, but the plot label text needs
+     room. Keep minmax(160px,1fr) so phones squeeze two side-by-side
+     for high-res displays, but allow images to scale without
+     letterboxing. */
+  .rms-plots-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+
+  /* Sky-coverage dome already capped at min(560px,90%) — keep
+     full-width on phone. */
+  .sky-dome-img{max-width:100%}
+
+  /* FDP frame tiles already collapse to one column at 600 px; keep
+     consistent here too. */
+  .fdp-frame-grid{grid-template-columns:1fr}
+
+  /* App panel close should be 44×44 on mobile (already covered by
+     cam-modal-close override). The app-panel auth link / list items
+     inside should be tappable too. */
+  .nav-tab{padding:6px 10px;font-size:12px;min-height:36px}
+
+  /* Logs viewer: stack toolbar elements full-width. */
+  .logs-toolbar{flex-direction:column;align-items:stretch}
+  .logs-toolbar > div{flex-wrap:wrap;gap:6px}
+  .logs-output{font-size:11px;padding:8px;max-height:50vh}
+  .log-select{flex:1;min-width:0}
+
+  /* Graph grid on sysadmin: already 1fr at 600 px; reinforce here
+     so the per-core CPU rows are readable. */
+  .core-label{width:24px}
+  .top-proc-name{width:90px;font-size:10px}
+
+  /* Cron rows: stack schedule above command on phone so neither
+     truncates. */
+  .cron-row{flex-direction:column;gap:6px;padding:8px}
+  .cron-schedule-col{min-width:0}
+  .cron-cmd-col{flex-wrap:wrap}
+
+  /* Site nav (cross-page link strip). Wrap and keep tappable. */
+  .site-nav{flex-wrap:wrap;gap:4px}
+  .site-nav-link{padding:8px 10px;font-size:12px;min-height:36px;
+    display:inline-flex;align-items:center}
+
+  /* RMS chunk grid keeps the 120 px minmax from the existing 540 rule
+     — but the chunk metadata badges need extra vertical room. */
+  .det-meta{font-size:10px;gap:2px 5px}
+  .vdb-chunk-time{font-size:11px}
+
+  /* Camera-window header layout on mobile: keep Live + Expand reachable. */
+  .cam-window-header{flex-wrap:wrap;gap:6px}
+  .cam-live-btn,.cam-expand-btn{padding:7px 12px;min-height:36px;font-size:11px}
+
+  /* Search/text inputs inside logs and elsewhere shouldn't blow up
+     the row. */
+  .log-select[type="search"]{width:auto;flex:1 1 100%}
+}
+
+/* ── In-DOM confirm dialog (askConfirm) ──
+   Replaces native window.confirm() for destructive operations so the
+   main thread keeps running (timers, SSE, live updates) while the user
+   decides, and so the prompt can be styled to match the rest of the
+   dashboard on iOS. Visual language matches .cam-modal. */
+.ask-confirm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);
+  z-index:5000;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);padding:16px}
+.ask-confirm.open{display:flex}
+.ask-confirm-card{background:var(--card);border:1px solid var(--border);
+  border-radius:10px;width:min(420px,96vw);
+  box-shadow:0 8px 32px rgba(0,0,0,.55);
+  display:flex;flex-direction:column;overflow:hidden}
+.ask-confirm-body{padding:18px 20px;color:var(--text);font-size:14px;line-height:1.45}
+.ask-confirm-actions{display:flex;gap:8px;justify-content:flex-end;
+  padding:12px 16px;border-top:1px solid var(--border);background:var(--bg)}
+.ask-confirm-btn{font-family:inherit;font-size:13px;padding:8px 16px;
+  border-radius:5px;cursor:pointer;min-height:40px;min-width:88px;
+  transition:background .12s,border-color .12s,color .12s}
+.ask-confirm-cancel{background:transparent;color:var(--muted);
+  border:1px solid var(--border)}
+.ask-confirm-cancel:hover{color:var(--text);border-color:var(--blue)}
+.ask-confirm-ok{background:var(--red);color:#fff;
+  border:1px solid var(--red);font-weight:600}
+.ask-confirm-ok:hover{filter:brightness(1.12)}
+.ask-confirm-ok.neutral{background:var(--blue);border-color:var(--blue)}
+@media(max-width:540px){
+  .ask-confirm-actions{flex-direction:column-reverse}
+  .ask-confirm-btn{width:100%;min-height:44px}
+}
+
+/* ── Log Viewer ─────────────────────────────────────────────────────── */
+.log-select{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 6px;font-size:12px;font-family:inherit}
+.log-select:focus{outline:none;border-color:var(--blue)}
+.logs-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.logs-output{background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:6px;padding:12px 14px;font-family:monospace;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-all;max-height:600px;overflow-y:auto;margin:0;color:var(--text)}
+.log-error{color:#f87171}
+.log-warn{color:#fbbf24}
+.log-debug{color:var(--muted)}
+
+/* ── System Admin — graphs ──────────────────────────────────────────── */
+.graph-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:600px){.graph-grid{grid-template-columns:1fr}}
+.graph-box{display:flex;flex-direction:column;gap:4px}
+.graph-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.graph-canvas{display:block;width:100%;border-radius:5px;border:1px solid var(--border)}
+.cores-bars{display:flex;flex-direction:column;gap:4px;padding-top:2px}
+.core-row{display:flex;align-items:center;gap:7px;font-size:11px}
+.core-label{font-family:monospace;color:var(--muted);width:20px;text-align:right;flex-shrink:0}
+.core-bar-track{flex:1;height:10px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.core-bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.core-pct{width:32px;text-align:right;color:var(--text);flex-shrink:0}
+.core-ghz{width:56px;text-align:right;color:var(--muted);flex-shrink:0}
+.top-proc-row{display:flex;align-items:center;gap:7px;font-size:11px}
+.top-proc-name{font-family:monospace;color:var(--text);width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top-proc-cores{width:72px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* ── System Admin — cron jobs list ──────────────────────────────────── */
+.cron-list{display:flex;flex-direction:column;gap:6px}
+.cron-row{display:flex;align-items:flex-start;gap:12px;padding:7px 10px;
+  background:rgba(255,255,255,.03);border-radius:6px;border:1px solid rgba(255,255,255,.06);
+  font-size:12px}
+.cron-row:hover{background:rgba(255,255,255,.055)}
+.cron-schedule-col{flex:0 0 auto;min-width:120px;display:flex;flex-direction:column;gap:3px}
+.cron-schedule-badge{display:inline-block;background:rgba(88,166,255,.15);color:var(--blue);
+  border:1px solid rgba(88,166,255,.3);border-radius:4px;padding:1px 7px;
+  font-size:11px;font-weight:600;white-space:nowrap}
+.cron-detail{font-size:10px;color:var(--muted);white-space:nowrap;padding-left:2px}
+.cron-cmd-col{flex:1 1 0;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.cron-cmd-text{font-family:monospace;font-size:11px;color:var(--text);
+  word-break:break-all;flex:1 1 0;min-width:0}
+.cron-src-badge{display:inline-block;border-radius:3px;padding:1px 6px;
+  font-size:10px;font-weight:600;white-space:nowrap;flex-shrink:0;
+  background:rgba(255,255,255,.07);color:var(--muted)}
+.cron-src-user{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid rgba(63,185,80,.3)}
+
+/* ── Detection Stats Chart ──────────────────────────────────────────── */
+#det-stats-canvas{display:block;image-rendering:pixelated}
+.det-stats-tooltip{position:absolute;pointer-events:none;display:none;background:var(--card);border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:12px;white-space:nowrap;z-index:10}
+.det-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.det-legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+/* ── VDB All-cams view toggle + synced multi-cam modal ────────────────── */
+.vdb-view-toggle{display:inline-flex;gap:0;border-radius:6px;overflow:hidden;
+  border:1px solid var(--border)}
+.vdb-toggle-btn{padding:4px 10px;font-size:11px;background:var(--card);color:var(--muted);
+  border:none;cursor:pointer;font-family:inherit;letter-spacing:.3px;
+  transition:background .15s,color .15s}
+.vdb-toggle-btn:hover{color:var(--text)}
+.vdb-toggle-btn.active{background:var(--blue);color:#fff}
+.vdb-cam-section{margin-bottom:18px}
+.vdb-cam-section:last-child{margin-bottom:0}
+.vdb-cam-header{font-size:12px;color:var(--muted);margin-bottom:6px;
+  text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
+
+/* All-cams timeline layout */
+.vdb-allcams-card{padding:0;overflow:hidden}
+.vdb-allcams-scroll{height:calc(100vh - 230px);overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.vdb-allcams-scroll::-webkit-scrollbar{width:8px}
+.vdb-allcams-scroll::-webkit-scrollbar-track{background:transparent}
+.vdb-allcams-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.vdb-allcams-scroll::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+.vdb-allcams-timeline{display:flex;flex-direction:column;gap:4px;padding:6px}
+.vdb-ts-card{display:flex;align-items:stretch;gap:8px;padding:6px;
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  cursor:pointer;transition:border-color .15s}
+.vdb-ts-card:hover{border-color:var(--blue)}
+.vdb-ts-cams{display:flex;gap:6px;flex:1;min-width:0;position:relative}
+.vdb-ts-cam{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.vdb-ts-cam-lbl{font-size:10px;color:var(--muted);text-align:center;
+  font-family:'SF Mono',Consolas,monospace;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.vdb-ts-thumb{position:relative;flex:1}
+.vdb-ts-thumb img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;
+  border-radius:3px;background:#111}
+.vdb-ts-thumb .vdb-chunk-nostack{aspect-ratio:16/9;border-radius:3px}
+.vdb-ts-empty{aspect-ratio:16/9;background:#111;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+.vdb-ts-meta{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:4px;
+  font-size:12px;font-weight:600;color:var(--blue);white-space:nowrap;min-width:54px;padding:0 2px}
+.vdb-dome-btn{position:absolute;bottom:4px;right:4px;font-size:15px;
+  background:rgba(0,0,0,.55);border:none;border-radius:4px;cursor:pointer;
+  padding:2px 4px;line-height:1;opacity:0;transition:opacity .15s;z-index:1}
+.vdb-ts-card:hover .vdb-dome-btn{opacity:1}
+.vdb-dome-btn:hover{background:rgba(0,0,0,.8)}
+.vdb-ts-badge{position:absolute;bottom:4px;right:4px;font-size:10px;line-height:1;
+  border-radius:3px;padding:1px 3px;pointer-events:none}
+.vdb-ts-badge--det{background:rgba(99,102,241,.75);color:#fff}
+.vdb-ts-badge--manual{background:rgba(88,166,255,.65);color:#fff}
+@media(max-width:768px){.vdb-allcams-card{display:none}}
+
+
+/* ── VDB Selection mode ─────────────────────────────────────────────── */
+.vdb-selection-bar{display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:8px;
+  background:var(--card);border:1px solid var(--blue);border-radius:6px;
+  padding:10px 16px;margin-top:4px}
+.vdb-sel-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vdb-chunk-card.vdb-chunk-selected{outline:2px solid var(--blue);outline-offset:-2px}
+.vdb-checkbox{position:absolute;top:6px;left:6px;width:20px;height:20px;
+  background:var(--bg);border:2px solid var(--border);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  pointer-events:none;z-index:5;color:transparent}
+.vdb-checkbox--checked{background:var(--blue);border-color:var(--blue);color:#000}
+
+/* ── Client-side 180° rotation ── */
+/* Applied to RMS plot <img>s when the camera's rotate flag is true in
+   dashboard_config.yaml. FF-based plots come from the station in native
+   sensor orientation; previously the dashboard re-encoded them with PIL
+   on cache miss (~20 ms each). The compositor does it for free here,
+   and the cache stores raw bytes (smaller + reusable across orientations).
+   Station/archive color stacks are pre-rotated upstream and do NOT use
+   this class. */
+.thumb-rotated{transform:rotate(180deg)}
+
+/* ── Persistent site nav (shared across all pages) ── */
+.site-nav{display:flex;gap:2px}
+.site-nav-link{font-size:11px;color:var(--muted);text-decoration:none;padding:4px 10px;
+  border-radius:4px;transition:color .15s,background .15s;white-space:nowrap}
+.site-nav-link:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.site-nav-link.active{color:var(--blue);background:rgba(88,166,255,.1)}
+
+/* ── Overview station selector ── */
+.ov-station-sel{position:relative;margin-left:8px}
+.ov-station-sel-btn{background:none;border:1px solid var(--border);border-radius:5px;
+  color:var(--text);font-size:11px;font-family:inherit;padding:4px 10px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;white-space:nowrap}
+.ov-station-sel-btn:hover{border-color:var(--blue);color:var(--blue)}
+.ov-station-menu{position:absolute;top:calc(100% + 4px);left:0;min-width:200px;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  box-shadow:0 8px 28px rgba(0,0,0,.55);z-index:1100;max-height:60vh;overflow-y:auto;
+  display:none}
+.ov-station-menu.open{display:block}
+.ov-station-opt{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12px;
+  color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);
+  transition:background .1s}
+.ov-station-opt:last-child{border-bottom:none}
+.ov-station-opt:hover{background:rgba(255,255,255,.06);color:var(--blue)}
+
+/* ── Network stats bar (overview page, above map) ── */
+.ov-net-stats{display:grid;grid-template-columns:repeat(4,auto);gap:4px 16px;align-items:center;
+  padding:8px 14px;background:var(--card);border:1px solid var(--border);
+  border-radius:6px;font-size:11px;color:var(--muted);align-self:center}
+.ov-net-stats .ns-item{display:flex;flex-direction:column;align-items:center;min-width:70px}
+.ov-net-stats .ns-val{font-size:16px;font-weight:700;color:var(--text);line-height:1.2}
+.ov-net-stats .ns-val.blue{color:var(--blue)}
+.ov-net-stats .ns-val.green{color:var(--green)}
+.ov-net-stats .ns-val.yellow{color:var(--yellow)}
+.ov-net-stats .ns-lbl{font-size:10px;color:var(--muted);white-space:nowrap}
+.ov-net-stats .ns-sep{display:none}
+@media(max-width:768px){
+  .ov-net-stats{gap:12px;padding:8px 12px}
+  .ov-net-stats .ns-val{font-size:13px}
+}
+
+/* ── Network status table (overview page) ── */
+.nw-section{margin-top:20px}
+.nw-section-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.nw-section-sub{font-size:11px;color:var(--muted);margin-bottom:12px}
+.nw-summary{display:flex;gap:24px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.nw-summary-item{font-size:13px;color:var(--muted)}
+.nw-summary-item b{font-size:20px;font-weight:700;display:block;margin-bottom:2px}
+.nw-summary-item.green b{color:var(--green)}
+.nw-summary-item.blue b{color:var(--blue)}
+.nw-summary-item.red b{color:var(--red)}
+.nw-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+.nw-table{width:100%;border-collapse:collapse;font-size:12px}
+.nw-table th{background:var(--card);color:var(--muted);font-weight:600;text-align:left;
+  padding:10px 12px;border-bottom:2px solid var(--border);white-space:nowrap;
+  cursor:pointer;user-select:none;transition:color .15s}
+.nw-table th:hover{color:var(--text)}
+.nw-table th.sort-asc::after{content:" \25B2";font-size:9px;color:var(--blue)}
+.nw-table th.sort-desc::after{content:" \25BC";font-size:9px;color:var(--blue)}
+.nw-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.nw-table tr:last-child td{border-bottom:none}
+.nw-table tr:hover td{background:rgba(255,255,255,.025)}
+.nw-table tr.offline td{opacity:.65}
+.nw-station-key{font-weight:700;color:var(--blue);font-family:'SF Mono',Consolas,monospace;text-decoration:none}
+.nw-station-key:hover{text-decoration:underline}
+.nw-station-label{font-size:11px;color:var(--muted);margin-top:2px}
+.nw-dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.nw-dot.up{background:var(--green);box-shadow:0 0 5px var(--green)}
+.nw-dot.down{background:var(--red)}
+.nw-dot.comm{background:#e89b3c;box-shadow:0 0 5px #e89b3c}
+.nw-online-cell{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.nw-online-text.up{color:var(--green)}
+.nw-online-text.down{color:var(--red)}
+.nw-online-text.comm{color:#e89b3c}
+.nw-metric{font-family:'SF Mono',Consolas,monospace;font-size:12px}
+.nw-metric.warn{color:var(--yellow)}
+.nw-metric.crit{color:var(--red)}
+.nw-metric.ok{color:var(--green)}
+.nw-metric.na{color:var(--muted)}
+.nw-cam-dots{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.nw-cam-dot{display:inline-flex;flex-direction:column;align-items:center;gap:3px;cursor:default}
+.nw-cam-dot-circle{width:10px;height:10px;border-radius:50%}
+.nw-cam-dot-circle.svc-ok{background:var(--green)}
+.nw-cam-dot-circle.svc-warn{background:var(--yellow)}
+.nw-cam-dot-circle.svc-dead{background:var(--red)}
+.nw-cam-dot-circle.svc-unknown{background:var(--border)}
+.nw-cam-dot-label{font-size:9px;color:var(--muted);font-family:'SF Mono',Consolas,monospace;
+  white-space:nowrap;max-width:52px;overflow:hidden;text-overflow:ellipsis}
+.nw-age{font-family:'SF Mono',Consolas,monospace;font-size:11px}
+.nw-age.fresh{color:var(--green)}
+.nw-age.recent{color:var(--text)}
+.nw-age.stale{color:var(--yellow)}
+.nw-age.old{color:var(--red)}
+.nw-age.na{color:var(--muted)}
+.nw-refresh-info{font-size:11px;color:var(--muted);margin-top:10px;text-align:right}
+.nw-refresh-info span{color:var(--text)}
+.nw-loading{padding:32px 12px;text-align:center;color:var(--muted);font-size:12px}
+.nw-error{padding:16px 12px;color:var(--red);font-size:12px}
+.nw-card{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:14px 16px;margin-bottom:10px}
+.nw-card.offline{opacity:.65}
+.nw-card-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.nw-card-key{font-weight:700;color:var(--blue);font-size:14px;font-family:'SF Mono',Consolas,monospace}
+.nw-card-label{font-size:11px;color:var(--muted)}
+.nw-card-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.nw-card-field{font-size:11px;color:var(--muted)}
+.nw-card-field b{color:var(--text);font-weight:600}
+@media(max-width:768px){
+  .nw-table-wrap{display:none}
+  .nw-cards{display:block}
+  .nw-summary{display:none}
+}
+@media(min-width:769px){
+  .nw-cards{display:none}
+}
+
+/* ── Station selector: hide on mobile (scroll to station cards instead) ── */
+@media(max-width:540px){.ov-station-sel{display:none!important}}
+
+/* ── Burger menu (mobile nav) ── */
+.nav-burger{display:none;background:none;border:1px solid var(--border);border-radius:4px;
+  color:var(--text);cursor:pointer;font-size:18px;line-height:1;padding:3px 9px;flex-shrink:0}
+.nav-burger:hover{border-color:var(--blue);color:var(--blue)}
+
+@media(max-width:540px){
+  .nav-burger{display:block}
+  .main-nav{display:none;position:absolute;top:100%;left:0;right:0;
+    flex-direction:column;background:var(--card);border-bottom:1px solid var(--border);
+    box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:1002;padding:4px 0;gap:0}
+  .main-nav.nav-open{display:flex}
+  .main-nav .nav-tab{border-radius:0;padding:11px 20px;font-size:13px;min-height:0;
+    width:100%;justify-content:flex-start;border-bottom:1px solid var(--border)}
+  .main-nav .nav-tab:last-child{border-bottom:none}
+}

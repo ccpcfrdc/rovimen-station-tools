@@ -1,0 +1,451 @@
+.ov-header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 24px;
+  display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:1001}
+.ov-logo{font-size:18px;font-weight:700;color:var(--blue);letter-spacing:1.5px}
+.ov-subtitle{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;
+  text-decoration:none;cursor:pointer;transition:color .15s}
+.ov-subtitle:hover{color:var(--text)}
+.ov-subtitle em{color:var(--blue);font-style:normal;font-weight:700}
+.ov-auth{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11px}
+
+.ov-main{padding:16px 24px;max-width:1500px;margin:0 auto}
+
+/* Anonymous-visitor hero/intro above the fleet map. Only rendered for
+   logged-out visitors (show_hero in overview.html); operators never see it. */
+.ov-hero{text-align:center;margin:4px auto 18px;max-width:820px}
+.ov-hero-title{font-size:22px;font-weight:800;letter-spacing:2px;color:var(--blue);
+  margin:0 0 8px;text-transform:uppercase}
+.ov-hero-text{font-size:14px;line-height:1.5;color:var(--muted);margin:0}
+
+.ov-topbar{display:flex;gap:20px;align-items:center;margin-bottom:12px;justify-content:center}
+.ov-summary{display:inline-grid;grid-template-columns:auto repeat(3,1fr);gap:0;
+  font-size:13px;border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0}
+.ov-summary-hdr{color:var(--muted);font-weight:600;text-align:center;padding:4px 14px;
+  border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.ov-summary-label{color:var(--muted);padding:4px 14px;font-size:12px}
+.ov-summary-cell{text-align:center;padding:4px 14px;font-weight:700;font-size:18px}
+.ov-summary-cell.green{color:var(--green)}
+.ov-summary-cell.red{color:var(--red)}
+.ov-summary-cell.orange{color:#e89b3c}
+
+#map-wrap{position:relative;width:100%;padding-bottom:min(100%,80vh);margin-bottom:18px}
+#map{position:absolute;inset:0;border-radius:10px;border:1px solid var(--border)}
+.leaflet-container{background:var(--bg)}
+.leaflet-tile-pane{filter:brightness(0.5)}
+.leaflet-control-attribution{background:rgba(13,17,23,.8)!important;color:var(--muted)!important;font-size:9px}
+.leaflet-control-attribution a{color:var(--blue)!important}
+.leaflet-control-zoom a{background:var(--card)!important;color:var(--text)!important;border-color:var(--border)!important}
+
+/* FOV controls — top-left */
+.fov-control{position:absolute;top:10px;left:10px;z-index:1000;display:flex;gap:4px}
+/* Map layer switcher — top-right */
+.map-layer-ctrl{position:absolute;top:10px;right:10px;z-index:1000;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.map-overlay-ctrl{top:10px;right:10px}
+.map-base-ctrl{position:absolute;bottom:30px;left:10px;z-index:1000;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.map-layer-btns{display:flex;gap:2px}
+/* Brightness slider */
+.map-brightness-row{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:3px 8px}
+.map-brightness-row label{font-size:10px;color:var(--muted);white-space:nowrap}
+.map-brightness-row input[type=range]{width:80px;height:4px;accent-color:var(--blue);cursor:pointer}
+.map-brightness-row.hidden{display:none}
+/* Push zoom control below layer switcher */
+.leaflet-top.leaflet-right{top:112px!important}
+/* LP overlay pane — not dimmed by the base tile brightness filter */
+.leaflet-lpPane-pane{z-index:250}
+.leaflet-wxPane-pane{z-index:300}
+.map-layer-toggle{display:none}
+.fov-btn{background:var(--card);color:var(--muted);border:1px solid var(--border);
+  border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;
+  transition:color .15s,border-color .15s,background .15s}
+.fov-btn:hover{color:var(--text);border-color:var(--blue)}
+.fov-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* Weather radar overlay controls */
+/* Weather controls — inline next to Clouds button */
+.wx-row{display:flex;align-items:center;gap:4px}
+.wx-inline{display:none;align-items:center;gap:4px;margin-left:2px}
+.wx-inline.visible{display:flex}
+.wx-inline button{background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:14px;padding:4px 8px;min-width:32px;min-height:32px;line-height:1;font-family:inherit;transition:color .15s}
+.wx-inline button:hover{color:var(--text);background:var(--card)}
+.wx-inline .wx-time{font-size:9px;color:var(--muted);font-family:'SF Mono',monospace;white-space:nowrap}
+.wx-inline input[type=range]{width:70px;height:8px;accent-color:var(--blue);cursor:pointer}
+#wx-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#58a6ff;cursor:pointer}
+#wx-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#58a6ff;border:none;cursor:pointer}
+
+/* Station band — full-width strip at map bottom */
+#station-band{
+  position:absolute;bottom:0;left:0;right:0;z-index:1000;
+  background:rgba(13,17,23,0.93);
+  border-top:1px solid #30363d;
+  border-radius:0 0 10px 10px;
+  padding:20px 20px;
+  display:none;
+  font-family:'SF Mono',Consolas,monospace;font-size:14px;color:#e6edf3;
+  backdrop-filter:blur(6px);
+}
+#sb-inner{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
+/* Selected station marker ring (multi-select on the overview map) */
+.ov-marker-dot{transition:box-shadow .12s,transform .12s}
+.ov-marker-selected{
+  box-shadow:0 0 0 3px var(--blue),0 0 8px var(--blue) !important;
+  transform:scale(1.15);
+}
+/* Multi-selection compact rows in the station band */
+.sb-list{display:flex;flex-direction:column;gap:8px;width:100%}
+.sb-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;
+  padding-bottom:6px;border-bottom:1px solid rgba(48,54,61,0.5)}
+.sb-row:last-child{border-bottom:none;padding-bottom:0}
+.sb-band-footer{display:flex;align-items:center;gap:10px;width:100%;margin-top:6px}
+.sb-name{font-weight:700;color:var(--blue);font-size:15px}
+.sb-label{color:var(--muted)}
+.sb-coords{color:#8b949e;font-size:13px}
+.sb-cams{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sb-cam-badge{font-size:12px;padding:2px 8px;border-radius:3px;border:1px solid;font-family:inherit}
+.sb-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.sb-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:4px;padding:5px 12px;font-size:13px;cursor:pointer;font-family:inherit;
+  transition:color .15s,border-color .15s,background .15s}
+.sb-btn:hover{color:var(--text);border-color:var(--blue)}
+.sb-btn.go{border-color:var(--blue);color:#fff;background:var(--blue);text-decoration:none;display:inline-flex;align-items:center}
+.sb-btn.go:hover{background:#1f6feb;border-color:#1f6feb}
+.sb-close{background:none;border:none;color:#8b949e;font-size:18px;cursor:pointer;
+  padding:0 4px;line-height:1;font-family:inherit;min-width:32px;min-height:32px;
+  display:flex;align-items:center;justify-content:center}
+.sb-close:hover{color:#c9d1d9;background:rgba(255,255,255,0.08);border-radius:4px}
+/* Live FF maxpixel thumbnails in the station band */
+.sb-thumbs{display:flex;gap:8px;flex-wrap:wrap;width:100%;margin-top:4px}
+.sb-thumb{border-radius:4px;border:1px solid var(--border);overflow:hidden;
+  background:#0d1117;display:flex;flex-direction:column;width:140px}
+.sb-thumb img{width:140px;height:105px;object-fit:cover;display:block}
+.sb-thumb .sb-thumb-label{font-size:10px;color:var(--muted);padding:3px 6px;text-align:center}
+.sb-thumb.loading img{opacity:0.3}
+.sb-thumb-inactive{font-size:11px;color:#484f58;font-style:italic;padding:4px 0}
+
+/* Live cameras grid */
+.ov-live-card{width:160px;border-radius:6px;border:1px solid var(--border);background:var(--card);
+  overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.ov-live-card:hover{border-color:var(--green);box-shadow:0 0 8px rgba(63,185,80,0.2)}
+.ov-live-card img{width:160px;height:120px;object-fit:cover;display:block;background:#161b22}
+.ov-live-card .ov-live-meta{padding:5px 8px;font-size:11px;font-weight:600;color:var(--text);
+  font-family:'SF Mono',Consolas,monospace;display:flex;align-items:center;justify-content:space-between}
+.ov-live-card .ov-live-age{font-size:9px;font-weight:400;color:var(--green)}
+.ov-live-group{border:1px solid var(--border);border-radius:8px;padding:10px 12px;
+  margin-bottom:10px}
+.ov-live-group-label{font-size:11px;font-weight:700;margin-bottom:6px;letter-spacing:.5px}
+.ov-live-group-cards{display:flex;gap:10px;flex-wrap:wrap}
+.ov-live-btn{background:var(--green);color:#0d1117;border:none;border-radius:4px;
+  padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:background .15s}
+.ov-live-btn:hover{background:#2ea043}
+
+/* Camera code labels overlaid on FOV polygons */
+.cam-fov-label{
+  font-size:10px;font-family:'SF Mono',Consolas,monospace;
+  color:#e6edf3;background:rgba(13,17,23,0.72);
+  padding:1px 5px;border-radius:3px;
+  white-space:nowrap;pointer-events:none;
+  transform:translate(-50%,-50%);display:inline-block;
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+/* Station stacks grid below map */
+.ov-stacks{margin-top:24px}
+.ov-stacks-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.ov-stacks-title .muted{font-size:12px;font-weight:400;color:var(--muted)}
+.ov-station-group{margin-bottom:24px}
+.ov-station-label{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ov-station-label .ov-station-loc{font-weight:400;color:var(--muted);font-size:12px}
+.ov-station-label .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.ov-station-label .dot.up{background:var(--green)}
+.ov-station-label .dot.down{background:var(--red)}
+.ov-cam-grid{display:flex;gap:10px;flex-wrap:wrap}
+.ov-cam-card{width:160px;border-radius:6px;border:1px solid var(--border);background:var(--card);
+  overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.ov-cam-card:hover{border-color:var(--blue);box-shadow:0 0 8px rgba(56,139,253,0.15)}
+.ov-cam-card img{width:160px;height:120px;object-fit:cover;display:block;background:#161b22}
+.ov-cam-card .ov-cam-code{padding:6px 8px;font-size:11px;font-weight:600;color:var(--text);
+  font-family:'SF Mono',Consolas,monospace;display:flex;align-items:center;justify-content:space-between}
+.ov-cam-card .ov-cam-date{font-size:10px;font-weight:400;color:var(--muted)}
+.ov-cam-card .ov-cam-date.fresh{color:var(--green);font-weight:600}
+.ov-cam-card .ov-cam-date.stale{color:#d29922;font-weight:600}
+.ov-cam-card .ov-cam-date.old{color:var(--red);font-weight:600}
+.ov-cam-card.no-stack img{opacity:0.3;filter:grayscale(1)}
+.ov-stacks-loading{font-size:12px;color:var(--muted);padding:12px 0}
+
+/* Skeleton placeholders — shown while /api/overview/stacks is in flight so the
+   stacks section is never blank on cold start. Replaced with real cards once
+   the fetch resolves. Aspect ratio matches the real .ov-cam-card img (4:3). */
+.ov-stack-skeleton{
+  width:160px;border-radius:6px;border:1px solid var(--border);background:var(--card);
+  overflow:hidden;position:relative
+}
+.ov-stack-skeleton-img{
+  width:100%;aspect-ratio:4/3;display:block;
+  background:linear-gradient(90deg,var(--card) 0%,var(--border) 50%,var(--card) 100%);
+  background-size:200% 100%;animation:ov-stack-shimmer 1.4s ease-in-out infinite
+}
+.ov-stack-skeleton-meta{
+  height:25px;border-top:1px solid var(--border);
+  background:linear-gradient(90deg,var(--card) 0%,var(--border) 50%,var(--card) 100%);
+  background-size:200% 100%;animation:ov-stack-shimmer 1.4s ease-in-out infinite;
+  opacity:.6
+}
+@keyframes ov-stack-shimmer{
+  0%  {background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+.ov-stack-skeleton-group{margin-bottom:24px}
+.ov-stack-skeleton-label{
+  height:14px;width:140px;border-radius:3px;margin-bottom:8px;
+  background:linear-gradient(90deg,var(--card) 0%,var(--border) 50%,var(--card) 100%);
+  background-size:200% 100%;animation:ov-stack-shimmer 1.4s ease-in-out infinite
+}
+.ov-stack-skeleton-row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ── Plot gallery buttons on overview camera cards ── */
+.ov-cam-card-wrap{width:160px;display:flex;flex-direction:column}
+.ov-plot-btns{display:flex;flex-wrap:wrap;gap:2px;padding:4px 6px 6px}
+.ov-plot-toggle-bar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;margin-bottom:12px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;align-items:center}
+.ov-plot-toggle-bar-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
+  font-weight:600;margin-right:4px}
+.ov-plot-toggle-btn{font-size:12px;padding:5px 10px;border-radius:4px;cursor:pointer;
+  background:var(--bg);color:var(--text);border:1px solid var(--border);transition:all .15s}
+.ov-plot-toggle-btn:hover{border-color:var(--blue);color:var(--blue)}
+.ov-plot-toggle-btn.active{background:var(--blue);color:#0d1117;border-color:var(--blue);font-weight:600}
+.ov-plot-btn.active{background:var(--blue);color:#0d1117;border-color:var(--blue)}
+.ov-plot-btn{font-size:9px;padding:2px 5px;border-radius:3px;cursor:pointer;
+  background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.15);
+  color:var(--blue);font-family:inherit;white-space:nowrap;transition:background .15s}
+.ov-plot-btn:hover{background:rgba(88,166,255,.2)}
+
+/* ── Click-to-expand camera card ── */
+.ov-cam-card{position:relative;cursor:zoom-in}
+.ov-cam-card:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.ov-cam-jump{position:absolute;top:4px;right:4px;z-index:2;
+  background:rgba(13,17,23,.7);color:var(--blue);font-size:13px;line-height:1;
+  padding:3px 6px;border-radius:4px;text-decoration:none;
+  border:1px solid rgba(88,166,255,.4);transition:background .15s}
+.ov-cam-jump:hover{background:var(--blue);color:#0d1117}
+
+/* ── GMN orbit banner ── */
+/* Sits at the top edge of the map, but inset from the left so the FOV
+   controls (top:10px;left:10px) and from the right so the map-layer
+   switcher don't get overlapped. Centered text reads well in the gap. */
+#gmn-banner{
+  display:none;
+  position:absolute;top:8px;right:140px;z-index:998;
+  background:rgba(13,17,23,0.88);
+  border:1px solid #30363d;
+  border-radius:6px;
+  padding:6px 16px;
+  font-family:'SF Mono',Consolas,monospace;font-size:12px;color:#e6edf3;
+  text-align:right;
+  pointer-events:none;
+  white-space:nowrap;max-width:50%;overflow:hidden;text-overflow:ellipsis;
+}
+@media(max-width:768px){
+  /* Mobile: FOV controls move to bottom — banner can take the full top. */
+  #gmn-banner{left:auto;right:8px;top:6px;padding:4px 8px;font-size:11px;max-width:50%}
+}
+/* date input inline with layer buttons
+   Sized for comfortable click target on a trackpad — David flagged the
+   previous tiny version as hard to hit. Min-height 36px, generous padding,
+   bumped font size, full date format visible without truncation. */
+#gmn-date-row{display:none;align-items:center;gap:6px;
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:4px 10px}
+#gmn-date-row label{font-size:12px;color:var(--muted);font-weight:600;
+  letter-spacing:.3px}
+#gmn-date-input{
+  background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:5px;
+  padding:7px 10px;font-size:13px;font-family:inherit;cursor:pointer;
+  min-height:36px;min-width:148px;
+  color-scheme:dark;
+  transition:border-color .15s, background .15s;
+}
+#gmn-date-input:hover{border-color:var(--blue);background:var(--card)}
+#gmn-date-input:focus{outline:none;border-color:var(--blue);background:var(--card)}
+/* The native date picker indicator (calendar icon) is tiny and dark on
+   dark — invert + scale it up to match the bigger control. */
+#gmn-date-input::-webkit-calendar-picker-indicator{
+  filter:invert(0.7);cursor:pointer;transform:scale(1.2);margin-left:4px;
+}
+/* Mobile: bigger tap target + edge buffer so swipe-back doesn't grab the
+   GMN date input. Native overview controls live close to the screen edge
+   on phone, which is exactly where iOS / Android edge-back lives. */
+@media (max-width: 540px){
+  #gmn-date-row{padding:6px 14px;margin-inline:6px}
+  #gmn-date-input{
+    padding:11px 14px;
+    font-size:16px;        /* prevents iOS auto-zoom on focus */
+    min-height:44px;
+  }
+  #gmn-date-input::-webkit-calendar-picker-indicator{transform:scale(1.5)}
+  #map-brightness, #ov-zoom{
+    height:36px;
+  }
+  #map-brightness::-webkit-slider-thumb,
+  #ov-zoom::-webkit-slider-thumb{
+    -webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+    background:var(--blue,#2563eb);border:2px solid #fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  #map-brightness::-moz-range-thumb,
+  #ov-zoom::-moz-range-thumb{
+    width:26px;height:26px;border-radius:50%;
+    background:var(--blue,#2563eb);border:2px solid #fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+
+/* ── Dark theme for GMN popups (Leaflet defaults to white) ─────────── */
+.leaflet-popup.gmn-popup .leaflet-popup-content-wrapper{
+  background:var(--card);color:var(--text);
+  border:1px solid var(--border);border-radius:8px;
+  box-shadow:0 6px 22px rgba(0,0,0,.55);
+  padding:2px;
+}
+.leaflet-popup.gmn-popup .leaflet-popup-content{margin:10px 12px;line-height:1.45}
+.leaflet-popup.gmn-popup .leaflet-popup-tip{
+  background:var(--card);border:1px solid var(--border);
+}
+.leaflet-popup.gmn-popup a.leaflet-popup-close-button{color:var(--muted)}
+.leaflet-popup.gmn-popup a.leaflet-popup-close-button:hover{color:var(--text)}
+/* Stacked column of local witness clips under the metadata. Each clip
+   takes the full popup width so it's instantly visible — no scroll,
+   no horizontal squeeze. Events with many witnesses just make the
+   popup taller; leaflet handles that fine. */
+.gmn-clips{display:flex;flex-direction:column;gap:10px;margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--border)}
+.gmn-clip{display:flex;flex-direction:column;gap:4px;min-width:0}
+.gmn-clip video{width:100%;border-radius:4px;background:#000;display:block;
+  cursor:zoom-in;transition:outline-color .15s;outline:1px solid transparent}
+.gmn-clip video:hover{outline-color:var(--blue)}
+.gmn-clip-label{font-size:10px;color:var(--muted);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.gmn-clip-label a{color:var(--blue);text-decoration:none}
+.gmn-clip-label a:hover{text-decoration:underline}
+/* Witness station codes are click-throughs into the per-station RMS page.
+   Always-on so users can chase context even when no local clip matched. */
+.gmn-popup .gmn-witness-link{color:var(--blue);text-decoration:none}
+.gmn-popup .gmn-witness-link:hover{text-decoration:underline}
+/* Inline error fallback when a local clip 404s or fails to decode. */
+.gmn-popup .gmn-clip-error{font-size:10px;color:var(--red,#f85149);
+  white-space:nowrap;margin-top:2px}
+
+/* ── Overview plot modal (full-screen zoomable) ── */
+.ov-plot-modal{position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:2000;padding:8px}
+.ov-plot-modal.open{display:flex}
+.ov-plot-modal-inner{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  max-width:99vw;max-height:99vh;overflow:hidden;display:flex;flex-direction:column}
+.ov-plot-modal-hdr{display:flex;align-items:center;gap:12px;padding:10px 16px;
+  border-bottom:1px solid var(--border);flex-shrink:0}
+.ov-plot-modal-title{font-size:13px;font-weight:600;color:var(--text)}
+.ov-plot-modal-close{margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;
+  color:var(--muted);font-size:13px;padding:3px 10px;cursor:pointer;transition:color .15s}
+.ov-plot-modal-close:hover{color:var(--text);border-color:var(--blue)}
+.ov-plot-modal-img{max-width:98vw;max-height:calc(100vh - 56px);object-fit:contain;display:block;
+  cursor:zoom-in;transition:transform .2s}
+
+@media(max-width:768px){
+  .ov-header{padding:8px 12px}
+  .ov-subtitle{display:none}
+  .ov-main{padding:6px 8px 12px}
+  .ov-topbar{display:none}
+  /* map takes about half the viewport on mobile so the stacks grid + station
+     popups fit below and the page can scroll normally */
+  #map-wrap{padding-bottom:0;height:60vh;height:60svh;min-height:320px;margin-bottom:12px}
+  .fov-btn{padding:3px 7px;font-size:10px}
+  .fov-control{top:auto;bottom:50px;left:10px;flex-wrap:wrap;max-width:55%;gap:3px}
+  /* P1-28: when the station band is open it sits at bottom:0 with a
+     ~150 px height on phones, covering the FOV control's default
+     bottom:50px slot — push the controls above the band so altitude
+     selector + FOV toggle stay reachable on mobile. Triggered via
+     either :has() (modern browsers) or the .ov-band-open class that
+     openStationPanel / closePanel toggle for older Safari (<15.4). */
+  #map-wrap:has(#station-band[style*="block"]) .fov-control,
+  #map-wrap.ov-band-open .fov-control{
+    bottom:auto;top:60px;left:10px;max-width:80%;
+  }
+  .map-layer-ctrl{top:10px;right:10px;align-items:flex-end}
+  .map-layer-toggle{display:block}
+  .map-layer-btns{display:none;flex-direction:column;gap:2px}
+  .map-layer-btns.open{display:flex}
+  .map-brightness-row{display:none!important}
+  .leaflet-top.leaflet-right{display:none!important}
+  .leaflet-bottom.leaflet-right{bottom:10px!important}
+  #sb-inner{gap:10px}
+  .sb-actions{margin-left:0;width:100%}
+  /* Camera grid: switch to 2-col CSS grid so cards fill full width,
+     no leftover space from fixed 160px cards + flex wrapping. */
+  .ov-cam-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .ov-cam-card,.ov-cam-card-wrap{width:auto!important}
+  .ov-cam-card img{width:100%!important;height:auto!important;aspect-ratio:4/3;object-fit:cover}
+  .ov-stacks{margin-top:12px}
+  .ov-stacks-title{margin-bottom:8px}
+  .ov-stacks-title .ov-zoom-row{display:none!important}
+  .ov-station-group{margin-bottom:12px}
+  .ov-station-label{font-size:12px;margin-bottom:6px}
+}
+
+/* Live view modal — shared modal system */
+.ov-live-modal-wrap{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.85);
+  display:none;align-items:center;justify-content:center;cursor:pointer}
+.ov-live-modal-wrap.open{display:flex}
+
+@media(max-width:540px){
+  /* Header: drop the auth login button label to icon-only sized at
+     44 px so the row doesn't wrap to two lines. */
+  .ov-header{padding:6px 8px;gap:8px}
+  .ov-header > div[style*="margin-left:auto"]{gap:8px}
+  .ov-header .hdr-clock{font-size:10px}
+  #ov-auth .hdr-btn{padding:6px 10px;font-size:11px;min-height:32px}
+
+  /* Camera grid: 2 columns, cards fill width, tighter gap. */
+  .ov-cam-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .ov-cam-card,.ov-cam-card-wrap{width:auto}
+  .ov-cam-card img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+  .ov-station-group{margin-bottom:12px}
+  .ov-station-label{font-size:12px;margin-bottom:6px}
+
+  /* Stacks block label legibility. */
+  .ov-stacks-title{font-size:14px;flex-wrap:wrap;gap:6px}
+  .ov-stacks-title .muted{font-size:11px;width:100%}
+  /* The zoom slider on the right has a desktop-only utility; hide it
+     on phone because the per-card width adapts via the rule above. */
+  .ov-stacks-title .ov-zoom-row{display:none!important}
+
+  /* Plot toggle bar: stack and wrap so 7 chips don't overflow. */
+  .ov-plot-toggle-bar{padding:8px 10px;gap:5px}
+  .ov-plot-toggle-btn{font-size:11px;padding:7px 10px;min-height:34px}
+
+  /* Station band actions: become a column with full-width buttons. */
+  #station-band{padding:14px 14px;font-size:12px}
+  .sb-name{font-size:13px}
+  .sb-coords{font-size:11px}
+  .sb-cam-badge{font-size:11px;padding:3px 8px}
+  .sb-actions{flex-direction:column;gap:6px;align-items:stretch}
+  .sb-actions .sb-btn{width:100%;text-align:center;justify-content:center;
+    padding:10px 14px;font-size:13px;min-height:42px}
+  .sb-thumbs{gap:6px}
+  .sb-thumb{width:110px}
+  .sb-thumb img{width:110px;height:82px}
+  .wx-inline input[type=range]{width:50px}
+
+  /* GMN popup video gets full popup width — keep the inner clip <video>
+     short on phone so the marker popup doesn't dominate the screen. */
+  .gmn-clip video{max-height:28vh}
+  /* Leaflet popup width auto-shrinks on phones because Leaflet sets
+     maxWidth in JS; nothing to do here. */
+
+  /* Plot modal — full-screen-sheet treatment. */
+  .ov-plot-modal{padding:0}
+  .ov-plot-modal-inner{border-radius:0;max-height:100vh;max-height:100dvh;
+    max-width:100vw;width:100%}
+  .ov-plot-modal-hdr{padding:8px 12px}
+  .ov-plot-modal-close{min-height:40px;padding:8px 12px}
+  .ov-plot-modal-img{max-width:100vw;max-height:calc(100vh - 56px)}
+}

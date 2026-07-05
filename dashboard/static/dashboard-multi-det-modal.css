@@ -1,0 +1,253 @@
+/* ── MultiDetModal ──────────────────────────────────────────────────────── */
+
+.mdm-backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.82);
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px;
+}
+
+.mdm-inner {
+  background: var(--card, #161b22);
+  border: 1px solid var(--border, #30363d);
+  border-radius: 8px;
+  display: flex; flex-direction: column;
+  max-width: 1400px; width: 100%;
+  height: 90dvh; max-height: 90dvh; overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
+.mdm-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; flex-shrink: 0;
+  border-bottom: 1px solid var(--border, #30363d);
+}
+
+.mdm-title {
+  flex: 1; font-size: 13px; font-weight: 600;
+  color: var(--text, #c9d1d9);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.mdm-header-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+
+.mdm-stack-btn,
+.mdm-dome-btn,
+.mdm-stitch-btn,
+.mdm-close-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: 4px;
+  cursor: pointer;
+  background: rgba(255,255,255,.07);
+  border: 1px solid var(--border, #30363d);
+  color: var(--muted, #8b949e);
+  font-family: inherit;
+}
+
+.mdm-stack-btn:hover,
+.mdm-dome-btn:hover,
+.mdm-stitch-btn:hover,
+.mdm-close-btn:hover {
+  background: rgba(255,255,255,.14);
+  color: var(--text, #c9d1d9);
+}
+
+/* ── Video area ──────────────────────────────────────────────────────────── */
+
+.mdm-video-area {
+  flex: 1; min-height: 0; position: relative;
+  background: #000; overflow: hidden;
+}
+
+.mdm-status {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px; color: var(--muted, #8b949e);
+  background: rgba(0,0,0,.72); padding: 6px 14px; border-radius: 4px;
+  z-index: 2; white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── Grid layout (default: all equal) ────────────────────────────────────── */
+
+.mdm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 3px; padding: 3px;
+  position: absolute; inset: 0;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+/* ── Cell ────────────────────────────────────────────────────────────────── */
+
+.mdm-cell {
+  display: flex; flex-direction: column;
+  cursor: pointer;
+  border: 2px solid transparent; border-radius: 3px;
+  transition: border-color .12s;
+  min-height: 0;
+}
+
+.mdm-cell:hover { border-color: rgba(99,102,241,.5); }
+
+.mdm-cell video {
+  flex: 1;
+  width: 100%; min-height: 0; display: block;
+  background: #000; object-fit: contain;
+  cursor: pointer;
+}
+
+
+.mdm-cell-error video { display: none; }
+
+.mdm-err-msg {
+  display: flex; align-items: center; justify-content: center;
+  flex: 1; min-height: 60px;
+  color: var(--muted, #8b949e); font-size: 12px;
+}
+
+/* ── Focused layout (big left + sidebar right) ───────────────────────────── */
+/* JS sets grid-template-columns + grid-template-rows via inline style.      */
+/* Rows are 1fr so focused cell spans full container height.                 */
+
+.mdm-grid.mdm-focused {
+  overflow: hidden;
+  align-content: stretch;
+}
+
+/* Sidebar cells: go to right column, height filled by 1fr row */
+.mdm-grid.mdm-focused .mdm-cell {
+  grid-column: 2;
+  height: auto;
+}
+
+/* Focused cell: left column, spans all rows = full container height */
+.mdm-grid.mdm-focused .mdm-cell--focused {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  height: auto !important;
+  border-color: rgba(99,102,241,.45);
+}
+
+.mdm-grid.mdm-focused .mdm-cell--focused video {
+  flex: 1; width: 100%; height: 0; min-height: 0; max-height: none !important;
+  object-fit: contain;
+}
+
+/* ── Controls row ────────────────────────────────────────────────────────── */
+
+.mdm-ctrl-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px; flex-shrink: 0;
+  border-top: 1px solid var(--border, #30363d);
+  background: rgba(0,0,0,.22);
+}
+
+.mdm-btn {
+  font-size: 12px; font-family: inherit;
+  padding: 4px 10px; border-radius: 4px;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  background: rgba(255,255,255,.07);
+  border: 1px solid var(--border, #30363d);
+  color: var(--muted, #8b949e);
+}
+
+.mdm-btn:hover {
+  background: rgba(255,255,255,.14);
+  color: var(--text, #c9d1d9);
+}
+
+.mdm-btn-active {
+  background: rgba(99,102,241,.25) !important;
+  border-color: rgba(99,102,241,.6) !important;
+  color: #a5b4fc !important;
+}
+
+/* ── Track bar ───────────────────────────────────────────────────────────── */
+
+.mdm-trackbar-wrap { flex: 1; padding: 0 4px; }
+
+.mdm-trackbar {
+  position: relative; height: 10px;
+  background: rgba(255,255,255,.12);
+  border-radius: 5px; cursor: pointer; overflow: visible;
+}
+
+.mdm-trackbar-fill {
+  position: absolute; top: 0; bottom: 0;
+  background: rgba(88,166,255,.35); border-radius: 5px;
+  pointer-events: none;
+}
+
+.mdm-trackbar-det {
+  position: absolute; top: -4px; bottom: -4px; width: 2px;
+  background: var(--yellow); border-radius: 1px;
+  transform: translateX(-50%); pointer-events: none;
+}
+
+.mdm-trackbar-ph {
+  position: absolute; top: 50%;
+  width: 4px; height: 26px; border-radius: 2px;
+  background: #fff; box-shadow: 0 0 4px rgba(0,0,0,.6);
+  transform: translate(-50%, -50%); pointer-events: none;
+  z-index: 3;
+}
+
+.mdm-trackbar-trim-start,
+.mdm-trackbar-trim-end {
+  position: absolute; top: 50%;
+  width: 22px; height: 26px;
+  transform: translate(-50%, -50%);
+  cursor: ew-resize; touch-action: none;
+  z-index: 2;
+}
+
+.mdm-trackbar-trim-start::after,
+.mdm-trackbar-trim-end::after {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px; height: 12px; border-radius: 50%;
+}
+
+.mdm-trackbar-trim-start::after { background: var(--blue); }
+.mdm-trackbar-trim-end::after   { background: var(--green); }
+
+.mdm-time-lbl {
+  font-size: 11px; color: var(--muted, #8b949e);
+  flex-shrink: 0; min-width: 52px; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Dome canvas ─────────────────────────────────────────────────────────── */
+
+.mdm-dome-canvas {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: #000;
+  border-radius: 50%;   /* circle clip */
+}
+
+/* ── Stack mode ──────────────────────────────────────────────────────────── */
+
+.mdm-cell .mdm-stack-img {
+  display: none;
+  flex: 1;
+  width: 100%; min-height: 0;
+  object-fit: contain;
+  background: #000; border-radius: 4px; cursor: pointer;
+}
+
+.mdm-cell .mdm-stack-img-missing {
+  aspect-ratio: 4/3; background: #111; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted, #8b949e); font-size: 11px;
+}
+.mdm-cell .mdm-stack-img-missing::after { content: 'No stack'; }
+
+.mdm-grid.mdm-stack-mode .mdm-cell video { display: none; }
+.mdm-grid.mdm-stack-mode .mdm-cell .mdm-stack-img { display: block; }
+.mdm-grid.mdm-stack-mode .mdm-cell .mdm-stack-img-missing { display: flex; }

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ROVIMEN — Meteor Highlights</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-overview.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-highlights.css', v=build_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard-video-modal.css', v=build_version) }}">
+<script type="importmap">
+{
+  "imports": {
+    "/static/dashboard-common.js":          "{{ url_for('static', filename='dashboard-common.js',          v=build_version) }}",
+    "/static/dashboard-video-modal.js":     "{{ url_for('static', filename='dashboard-video-modal.js',     v=build_version) }}",
+    "/static/dashboard-multi-det-modal.js": "{{ url_for('static', filename='dashboard-multi-det-modal.js', v=build_version) }}"
+  }
+}
+</script>
+<script type="module" src="{{ url_for('static', filename='dashboard-common.js', v=build_version) }}"></script>
+<script type="module" src="{{ url_for('static', filename='dashboard-highlights.js', v=build_version) }}"></script>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="ov-header">
+  <a href="/" class="nav-logo">ROVIMEN</a>
+  <nav class="main-nav">
+    {% if nav_show('overview') %}<a href="/map" class="nav-tab">Stations</a>{% endif %}
+    {% if nav_show('events') %}<a href="/events" class="nav-tab">Detections</a>{% endif %}
+    {% if nav_show('highlights') %}<a href="/highlights" class="nav-tab active">Highlights</a>{% endif %}
+    {% if nav_show('showers') %}<a href="/showers" class="nav-tab">Showers</a>{% endif %}
+    <a href="/social" class="nav-tab nav-tab-admin" id="logo-dd-social" style="display:none">Social</a>
+    <a href="/admin" class="nav-tab nav-tab-admin" id="logo-dd-admin" style="display:none">Admin</a>
+    <button class="nav-tab" onclick="openAppPanel('about')">About</button>
+  </nav>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <span id="utc-clock" class="hdr-clock"></span>
+    <div id="ov-auth"></div>
+  </div>
+</div>
+
+<!-- ── Loading overlay ── -->
+<div id="hl-overlay" style="display:none">
+  <div class="hl-overlay-box">
+    <div class="hl-spinner"></div>
+    <div class="hl-overlay-msg" id="hl-overlay-msg">Loading data…</div>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<div class="hl-wrap">
+
+  <!-- Date picker -->
+  <div class="hl-picker-row">
+    <label for="hl-start">From</label>
+    <input type="date" id="hl-start">
+    <span class="hl-sep">—</span>
+    <label for="hl-end">to</label>
+    <input type="date" id="hl-end">
+    <button class="hl-submit" id="hl-submit">Load data</button>
+    <span class="hl-warn" id="hl-warn" style="display:none"></span>
+  </div>
+
+  <!-- Results (hidden until first query) -->
+  <div id="hl-result-wrap" style="display:none">
+
+    <!-- Stats grid -->
+    <p class="hl-section-title">Period statistics</p>
+    <div class="hl-stats">
+      <div class="hl-stat">
+        <div class="hl-stat-label">Meteors detected</div>
+        <div class="hl-stat-value loading" id="hl-val-detections"></div>
+      </div>
+      <div class="hl-stat">
+        <div class="hl-stat-label">Multi-station events</div>
+        <div class="hl-stat-value loading" id="hl-val-events"></div>
+      </div>
+      <div class="hl-stat">
+        <div class="hl-stat-label">Orbits computed (period)</div>
+        <div class="hl-stat-value loading" id="hl-val-orbits"></div>
+      </div>
+      <div class="hl-stat">
+        <div class="hl-stat-label">Orbits this month</div>
+        <div class="hl-stat-value loading" id="hl-val-orbits-month"></div>
+      </div>
+      <div class="hl-stat">
+        <div class="hl-stat-label">Active shower</div>
+        <div class="hl-stat-value loading" id="hl-val-shower"></div>
+      </div>
+      <div class="hl-stat">
+        <div class="hl-stat-label">Active cameras</div>
+        <div class="hl-stat-value loading" id="hl-val-cameras"></div>
+      </div>
+      <div class="hl-stat">
+        <div class="hl-stat-label">Active locations</div>
+        <div class="hl-stat-value loading" id="hl-val-locations"></div>
+      </div>
+      <div class="hl-stat">
+        <div class="hl-stat-label">2-station coverage 90 km</div>
+        <div class="hl-stat-value loading" id="hl-val-coverage"></div>
+      </div>
+    </div>
+
+    <!-- Monthly breakdown (shown only when range spans >1 month) -->
+    <div id="hl-months-wrap" style="display:none; margin-bottom:28px">
+      <p class="hl-section-title">Monthly breakdown</p>
+      <table class="hl-months-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Detections</th>
+            <th>Multi-station</th>
+          </tr>
+        </thead>
+        <tbody id="hl-months-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Top 10 meteors -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <p class="hl-section-title" style="margin:0">Top 10 impressive meteors</p>
+      <div id="hl-bulk-btns" style="display:none;gap:8px;align-items:center">
+        <button class="hl-submit" id="hl-dl-all-clips">&#8595; All clips</button>
+        <button class="hl-submit" id="hl-dl-all-stacks">&#8595; All stacks</button>
+      </div>
+    </div>
+    <div class="hl-grid" id="hl-grid"></div>
+
+  </div><!-- #hl-result-wrap -->
+
+</div><!-- .hl-wrap -->
+
+<!-- Highlights video modal — shared VideoModal component -->
+<div id="hl-modal-container"></div>
+
+<div id="app-panel" class="app-panel" onclick="appPanelClose(event)">
+  <div class="app-panel-inner">
+    <div class="app-panel-header">
+      <span id="app-panel-title" class="app-panel-title"></span>
+      <button class="cam-modal-close" onclick="appPanelClose(null)">&#x2715;</button>
+    </div>
+    <div id="app-panel-body"></div>
+  </div>
+</div>
+
+</body>
+</html>
