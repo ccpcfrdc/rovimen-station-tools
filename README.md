@@ -73,7 +73,7 @@ calibration variance, FF intervals, and observation periods.
 | Area | Path | What it does |
 |------|------|--------------|
 | **Dashboard** | `dashboard/` | Flask app that maps your stations, shows detections/events/timelapses, and proxies each station's REST API. Config-driven — no hard-coded stations. |
-| **Public API** | `dashboard/public_api.py` | Anonymous, read-only JSON + media surface for embedding data on your own website. See [`docs/public_api.md`](docs/public_api.md). |
+| **Public API** | `dashboard/public_api.py` | Anonymous, read-only JSON + media surface for embedding data on your own website. See [`docs/public_api.md`](docs/public_api.md) (contract) and [`docs/astromania-integration.md`](docs/astromania-integration.md) (reference consumer). |
 | **Station scripts** | `rovimen-scripts/` | Capture, colour calibration, encoding, FPN calibration, night processing, the station REST API, and the updater. Deployed to each station. |
 | **Colour calibration** | `lib/color_calibration.py` | Adaptive white balance, highlight-protect, gamma/contrast for colour meteor video. |
 | **Open hardware** | `GMN_SQR_V1/` | 3D-printable housings for common camera/board combos (STL). |
