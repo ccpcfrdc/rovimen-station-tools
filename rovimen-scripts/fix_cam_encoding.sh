@@ -24,6 +24,7 @@
 
 CONFIG="$HOME/rovimen_scripts/config.json"
 LOG="$HOME/fix_cam_encoding.log"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 
 VENV_PYTHON=$(grep -hoP 'ExecStart=\K\S+/bin/python3?' /etc/systemd/system/rms-*.service ~/.config/systemd/user/rms-*.service 2>/dev/null | head -1)
 if [ -z "$VENV_PYTHON" ]; then
@@ -45,6 +46,7 @@ wait_for_camera() {
 enforce_camera_ip() {
     local expected_ip=$1
     local station=$2
+    local expected_mac="${3:-}"
     local subnet
     subnet=$(echo "$expected_ip" | sed 's/\.[0-9]*$/./')
 
@@ -53,14 +55,31 @@ enforce_camera_ip() {
         return 0
     fi
 
-    echo "$(date): [$station] Camera not at $expected_ip, scanning ${subnet}0/24 for port 34567..." >> "$LOG"
-    local found_ip
-    found_ip=$(nmap -p 34567 "${subnet}0/24" --open -oG - 2>/dev/null \
-        | grep '34567/open' | grep -v "$expected_ip" \
-        | head -1 | awk '{print $2}')
+    local found_ip=""
+
+    # Preferred: MAC-verified Sofia broadcast (UDP :34569). A layer-2 broadcast
+    # reaches the camera on ANY subnet — so it finds it even after a reset to
+    # DHCP or a drifted subnet the /24 scan below would miss — and matching on
+    # MAC guarantees we reconfigure the right unit on multi-camera stations.
+    if [ -n "$expected_mac" ]; then
+        found_ip=$("$VENV_PYTHON" "$SCRIPT_DIR/xm_discovery.py" \
+            --mac "$expected_mac" --quiet 2>>"$LOG" || true)
+        if [ -n "$found_ip" ]; then
+            echo "$(date): [$station] Sofia broadcast matched MAC $expected_mac at $found_ip" >> "$LOG"
+        fi
+    fi
+
+    # Fallback: unicast port scan of the expected /24 (used when no MAC is
+    # configured, or the camera did not answer the broadcast).
+    if [ -z "$found_ip" ]; then
+        echo "$(date): [$station] Camera not at $expected_ip, scanning ${subnet}0/24 for port 34567..." >> "$LOG"
+        found_ip=$(nmap -p 34567 "${subnet}0/24" --open -oG - 2>/dev/null \
+            | grep '34567/open' | grep -v "$expected_ip" \
+            | head -1 | awk '{print $2}')
+    fi
 
     if [ -z "$found_ip" ]; then
-        echo "$(date): [$station] No camera found on subnet — cannot enforce IP" >> "$LOG"
+        echo "$(date): [$station] No camera found (broadcast + scan) — cannot enforce IP" >> "$LOG"
         return 1
     fi
 
@@ -310,10 +329,12 @@ if [ ! -f "$CONFIG" ]; then
     exit 1
 fi
 
-# Extract station IDs and IPs from config.json RTSP URLs.
-# RTSP format: rtsp://admin:@<IP>:554/...
-while IFS=' ' read -r ip station; do
-    enforce_camera_ip "$ip" "$station"
+# Extract station IDs, IPs and (optional) MACs from config.json.
+# IP comes from the RTSP URL (rtsp://admin:@<IP>:554/...); camera_mac is optional
+# and, when present, enables MAC-verified Sofia discovery in enforce_camera_ip.
+# Fields are pipe-delimited because a MAC contains colons.
+while IFS='|' read -r ip station mac; do
+    enforce_camera_ip "$ip" "$station" "$mac"
     fix_camera "$ip" "$station"
     sleep 30   # give the camera a breather between stations
 done < <("$VENV_PYTHON" -c "
@@ -322,9 +343,10 @@ with open('$CONFIG') as f:
     cfg = json.load(f)
 for station, info in cfg['stations'].items():
     rtsp = info.get('camera_rtsp', '')
+    mac = info.get('camera_mac', '')
     try:
         ip = rtsp.split('@')[1].split(':')[0]
-        print(ip, station)
+        print(f'{ip}|{station}|{mac}')
     except Exception:
         print(f'ERROR: could not parse IP for {station}: {rtsp}', file=sys.stderr)
 ")

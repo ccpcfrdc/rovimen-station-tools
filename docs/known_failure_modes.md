@@ -292,6 +292,18 @@ The config comment says gst "reverts to cv2" on error — but it reverts on an *
 
 ---
 
+## 15. Camera resets to DHCP or a drifted subnet → `enforce_camera_ip` can't find it
+
+**Symptom.** After a firmware glitch or power event a camera stops answering at its pinned static IP. `fix_cam_encoding.sh` logs `No camera found … cannot enforce IP` and the station silently loses that camera until someone hunts it down by hand.
+
+**Diagnosis.** `enforce_camera_ip`'s recovery was a unicast `nmap -p 34567` of the **expected `/24`**. If the camera fell back to DHCP on a different subnet (or APIPA `169.254.x`), it isn't in that `/24`, so the scan misses it. Worse, on a multi-camera station the scan took "the first camera on 34567 that isn't at the expected IP" — which can be a *different* camera, so enforcement could rewrite the wrong unit's address.
+
+**Fix.** Identify the camera by **MAC** over a Sofia UDP broadcast (`:34569`, the `SearchXM` probe). Because it's a layer-2 broadcast the camera answers **regardless of its IP subnet**, and the reply's `NetWork.NetCommon.MAC` lets `enforce_camera_ip` pin the exact unit before rewriting its IP. Add an optional `camera_mac` to the station in `config.json` to enable it; the `nmap` scan stays as the fallback when no MAC is configured. Discovery lives in `rovimen-scripts/xm_discovery.py` (`python xm_discovery.py` to list every XM camera on the LAN, `--mac <MAC> --quiet` to resolve one).
+
+**Status.** Added with the MAC-verified enforcement change.
+
+---
+
 ## Adding new entries
 
 Keep this catalog focused on failure modes that:
