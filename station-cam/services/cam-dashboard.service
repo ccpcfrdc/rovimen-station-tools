@@ -1,0 +1,12 @@
+[Unit]
+Description=station-cam local web dashboard (live camera HLS)
+After=network-online.target cam-net.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/lib/rovimen-cam/.venv/bin/python /usr/local/lib/rovimen-cam/cam_dashboard.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

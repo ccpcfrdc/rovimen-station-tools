@@ -1,0 +1,13 @@
+[Unit]
+Description=Enforce camera static IPs + capture profile at boot
+After=network-online.target cam-net.service
+Wants=network-online.target
+Requires=cam-net.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 45
+ExecStart=/usr/local/lib/rovimen-cam/.venv/bin/python /usr/local/lib/rovimen-cam/cam_enforce.py
+
+[Install]
+WantedBy=multi-user.target

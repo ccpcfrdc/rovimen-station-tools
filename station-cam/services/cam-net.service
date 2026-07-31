@@ -1,0 +1,13 @@
+[Unit]
+Description=Camera private net (alias + NAT + NTP)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/cam-net up
+ExecStop=/usr/local/bin/cam-net down
+
+[Install]
+WantedBy=multi-user.target

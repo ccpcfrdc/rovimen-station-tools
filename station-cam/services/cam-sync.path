@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch camera config and push profiles to cameras on change
+
+[Path]
+PathModified=/etc/rovimen-cam/config.json
+Unit=cam-sync.service
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+[Unit]
+Description=Sync camera capture profiles from /etc/rovimen-cam/config.json
+After=cam-net.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/rovimen-cam/.venv/bin/python /usr/local/lib/rovimen-cam/cam_enforce.py --sync

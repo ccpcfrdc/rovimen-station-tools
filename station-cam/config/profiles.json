@@ -1,0 +1,24 @@
+{
+  "rovimen": {
+    "encode": {"Compression": "H.264", "Resolution": "720P", "BitRateControl": "CBR", "BitRate": 8192, "FPS": 25, "GOP": 2, "Quality": 6},
+    "substream": false,
+    "param": {"DayNightColor": "0x00000001", "IrcutSwap": 1, "EsShutter": "0x00000000", "WhiteBalance": "0x00000002", "DncThr": 50, "ElecLevel": 40, "AeSensitivity": 1},
+    "exposure": {"LeastTime": "0x00009C40", "Level": 0, "MostTime": "0x00009C40"},
+    "gain": {"AutoGain": 1, "Gain": 60},
+    "clearfog": {"enable": false, "level": 30},
+    "color": {"Brightness": 100, "Contrast": 50, "Saturation": 50, "Hue": 50, "Gain": 0, "Acutance": 0},
+    "style": "type1",
+    "osd": false
+  },
+  "gmn-mono": {
+    "encode": {"Compression": "H.264", "Resolution": "720P", "BitRateControl": "VBR", "BitRate": 4096, "FPS": 25, "GOP": 2, "Quality": 6},
+    "substream": false,
+    "param": {"DayNightColor": "0x00000002", "IrcutSwap": 0, "EsShutter": "0x00000000", "WhiteBalance": "0x00000002", "DncThr": 50, "ElecLevel": 60, "AeSensitivity": 1},
+    "exposure": {"LeastTime": "0x00009C40", "Level": 0, "MostTime": "0x00009C40"},
+    "gain": {"AutoGain": 1, "Gain": 60},
+    "clearfog": {"enable": false, "level": 30},
+    "color": {"Brightness": 100, "Contrast": 50, "Saturation": 50, "Hue": 50, "Gain": 0, "Acutance": 0},
+    "style": "type1",
+    "osd": false
+  }
+}

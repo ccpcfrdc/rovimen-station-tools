@@ -1,0 +1,5 @@
+# Runtime deps for the station-cam venv.
+# The Sofia/DVRIP client (dvrip.py) is vendored under scripts/ and needs nothing
+# but the stdlib, so this is intentionally tiny. pydantic is here for config
+# validation (matches the repo convention) and future use.
+pydantic>=2

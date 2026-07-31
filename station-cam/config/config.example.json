@@ -1,0 +1,8 @@
+{
+  "iface": "eno1",
+  "network": {"alias_ip": "10.42.0.1", "prefix": 24, "subnet": "10.42.0.0/24"},
+  "ntp": "162.159.200.123",
+  "cameras": {
+    "aa:bb:cc:dd:ee:ff": {"ip": "10.42.0.10", "gw": "10.42.0.1", "mask": "255.255.255.0", "profile": "rovimen"}
+  }
+}
