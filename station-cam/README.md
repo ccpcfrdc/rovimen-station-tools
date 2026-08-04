@@ -59,6 +59,19 @@ sudo $EDITOR /etc/rovimen-cam/config.json     # set your camera MACs + IPs
 sudo systemctl start cam-net cam-enforce
 ```
 
+The installer auto-detects the network interface the camera alias lives on — the
+NIC carrying the default route (the station uplink, where `cam-net` also adds the
+alias and NAT). This makes it portable across hosts (`eno1`, `eth0`, `enp3s0`, …)
+with no editing. Override it only when the camera network must sit on a *different*
+NIC than the uplink:
+
+```bash
+bash install.sh --iface eth1        # pin the alias on eth1 instead
+```
+
+The chosen interface is written to `config.json` (`"iface"`), the single source of
+truth that both `cam-net` and the netplan pin read.
+
 Installs to:
 
 | From | To |

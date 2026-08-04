@@ -1,15 +1,40 @@
 #!/usr/bin/env bash
 # station-cam installer. Run as a normal user WITH sudo rights (no root login):
-#   bash install.sh
+#   bash install.sh [--iface <name>]
 #
 # Copies scripts -> /usr/local/lib/rovimen-cam (+ isolated .venv), CLI wrappers ->
 # /usr/local/bin, config -> /etc/rovimen-cam, and the two systemd units. Idempotent.
+#
+#   --iface <name>  interface the camera alias lives on. Default: auto-detected
+#                   (the NIC carrying the default route — the station uplink, which
+#                   is where cam-net already adds the alias + NAT). Pass it only when
+#                   the camera network must sit on a different NIC than eno1/eth0/…
 set -e
 
 SRC="$(cd "$(dirname "$0")" && pwd)"
 LIB=/usr/local/lib/rovimen-cam
 ETC=/etc/rovimen-cam
 BIN=/usr/local/bin
+
+IFACE_ARG=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --iface) IFACE_ARG="${2:?--iface needs a name, e.g. --iface eth0}"; shift 2 ;;
+        --iface=*) IFACE_ARG="${1#*=}"; shift ;;
+        -h|--help) echo "usage: install.sh [--iface <name>]"; exit 0 ;;
+        *) echo "unknown arg: $1  (use: install.sh [--iface <name>])" >&2; exit 2 ;;
+    esac
+done
+
+# Primary interface = the NIC with the default route (the uplink cam-net also
+# NATs through). Falls back to the first real, up IPv4 iface if no default route.
+detect_iface() {
+    local i
+    i=$(ip route show default 2>/dev/null | awk '{print $5; exit}')
+    [ -n "$i" ] && { echo "$i"; return; }
+    ip -o -4 addr show up 2>/dev/null \
+        | awk '$2!="lo" && $2!~/^(docker|veth|br-|tailscale|virbr|wg|lo)/ {print $2; exit}'
+}
 
 [ -f "$SRC/scripts/dvrip.py" ] || { echo "ERROR: vendored scripts/dvrip.py missing." >&2; exit 1; }
 
@@ -91,9 +116,11 @@ echo "  profiles.json (delivered) refreshed"
 # config.json + dashboard.json are station-specific — seed once, never overwrite
 if [ -f "$ETC/config.json" ]; then
     echo "  kept existing config.json (station cameras)"
+    SEEDED_CONFIG=0
 else
     sudo cp "$SRC/config/config.example.json" "$ETC/config.json"
     echo "  seeded config.json — set your cameras:  sudo \$EDITOR $ETC/config.json"
+    SEEDED_CONFIG=1
 fi
 if [ -f "$ETC/dashboard.json" ]; then
     echo "  kept existing dashboard.json"
@@ -104,17 +131,48 @@ fi
 # remove the old delivered-profiles location from earlier installs
 sudo rm -f "$LIB/profiles.json"
 
+echo "== camera-network interface =="
+# config.json's "iface" is the single source of truth (cam-net + the netplan pin
+# below both read it). Resolve it once here:
+#   --iface <name>       -> explicit override (always wins)
+#   fresh seed, no flag  -> auto-detect the uplink NIC (default-route iface)
+#   existing config      -> leave whatever the station already set
+CUR_IFACE=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("iface","eno1"))' "$ETC/config.json" 2>/dev/null || echo eno1)
+if [ -n "$IFACE_ARG" ]; then
+    WANT_IFACE="$IFACE_ARG"
+elif [ "$SEEDED_CONFIG" = 1 ]; then
+    WANT_IFACE="$(detect_iface)"; [ -n "$WANT_IFACE" ] || WANT_IFACE="$CUR_IFACE"
+else
+    WANT_IFACE="$CUR_IFACE"
+fi
+if [ "$WANT_IFACE" != "$CUR_IFACE" ]; then
+    python3 - "$ETC/config.json" "$WANT_IFACE" <<'PY' | sudo tee "$ETC/config.json.tmp" >/dev/null
+import json, sys
+d = json.load(open(sys.argv[1])); d["iface"] = sys.argv[2]
+print(json.dumps(d, indent=2))
+PY
+    sudo mv "$ETC/config.json.tmp" "$ETC/config.json"
+    echo "  iface set to '$WANT_IFACE' in config.json"
+else
+    echo "  iface = '$WANT_IFACE'"
+fi
+if ! ip link show "$WANT_IFACE" >/dev/null 2>&1; then
+    echo "  WARN: interface '$WANT_IFACE' not present on this host — set the right one" >&2
+    echo "        with:  bash install.sh --iface <name>   (or edit $ETC/config.json)" >&2
+fi
+
 echo "== persistent camera alias (netplan) =="
 # Pin the private camera alias in netplan so systemd-networkd keeps it across
 # DHCP renews and networkd restarts (e.g. unattended-upgrades running netplan
 # apply). Without this, a networkd restart flushes the alias cam-net added and
 # the cameras drop off until the next boot. Only on netplan systems (Ubuntu);
 # elsewhere cam-net keeps adding the alias at boot as before.
-read -r IFACE ALIAS PREFIX <<EOF
+IFACE="$WANT_IFACE"
+read -r ALIAS PREFIX <<EOF
 $(python3 - "$ETC/config.json" <<'PY'
 import json, sys
-d = json.load(open(sys.argv[1])); n = d.get("network", {})
-print(d.get("iface", "eno1"), n.get("alias_ip", "10.42.0.1"), n.get("prefix", 24))
+n = json.load(open(sys.argv[1])).get("network", {})
+print(n.get("alias_ip", "10.42.0.1"), n.get("prefix", 24))
 PY
 )
 EOF
@@ -132,7 +190,7 @@ if command -v netplan >/dev/null 2>&1 && ip link show "$IFACE" >/dev/null 2>&1; 
         sudo rm -f "$NP"
     fi
 elif command -v netplan >/dev/null 2>&1; then
-    echo "  iface '$IFACE' not present yet — set the right iface in config.json and re-run install.sh"
+    echo "  iface '$IFACE' not present yet — re-run:  bash install.sh --iface <name>"
 else
     echo "  no netplan here — cam-net adds the camera alias at boot (no change needed)"
 fi
