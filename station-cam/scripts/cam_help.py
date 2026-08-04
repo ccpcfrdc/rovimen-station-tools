@@ -49,6 +49,11 @@ COMMANDS = [
      "and Reboot per camera, an Orientation column, and 'Toate camerele' (all cameras",
      "in one grid). systemd service, disabled by default (systemctl enable --now",
      "cam-dashboard). Config: /etc/rovimen-cam/dashboard.json."),
+    ("cam-health [--reboot] [--json]",
+     "Video-freeze watchdog. Reads RMS's own output (FF files) — never opens a",
+     "second RTSP stream, so the RMS/GMN capture is untouched. A camera whose RMS",
+     "is capturing but whose frames stalled is FROZEN; --reboot power-cycles it",
+     "(cooldown-limited). Opt-in timer: systemctl enable --now cam-health.timer."),
     ("cam-help",
      "This reference.", "", ""),
 ]
@@ -65,6 +70,7 @@ SERVICES = [
     ("cam-enforce.service", "boot: enforce IPs + profiles (after cam-net)"),
     ("cam-sync.path", "opt-in: run cam-sync when the config changes"),
     ("cam-dashboard.service", "opt-in: local web view of the cameras (HLS)"),
+    ("cam-health.timer", "opt-in: periodic video-freeze watchdog (reboots frozen cameras)"),
 ]
 
 FLOWS = [

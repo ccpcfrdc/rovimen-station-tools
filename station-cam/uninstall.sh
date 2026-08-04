@@ -33,7 +33,7 @@ if [ "$YES" -ne 1 ]; then
 fi
 
 echo "== stop + disable services =="
-for s in cam-dashboard cam-sync.path cam-sync cam-enforce cam-net; do
+for s in cam-health.timer cam-health cam-dashboard cam-sync.path cam-sync cam-enforce cam-net; do
     sudo systemctl disable --now "$s" 2>/dev/null || true
 done
 
@@ -45,13 +45,15 @@ sudo rm -f /etc/systemd/system/cam-net.service \
            /etc/systemd/system/cam-enforce.service \
            /etc/systemd/system/cam-sync.service \
            /etc/systemd/system/cam-sync.path \
-           /etc/systemd/system/cam-dashboard.service
+           /etc/systemd/system/cam-dashboard.service \
+           /etc/systemd/system/cam-health.service \
+           /etc/systemd/system/cam-health.timer
 sudo systemctl daemon-reload
 
 echo "== remove CLI wrappers =="
 sudo rm -f "$BIN"/cam-net "$BIN"/cam-enforce "$BIN"/cam-sync "$BIN"/cam-profiles-update \
            "$BIN"/cam-reboot "$BIN"/cam-add "$BIN"/cam-find "$BIN"/cam-ip \
-           "$BIN"/cam-recovery-test "$BIN"/cam-help "$BIN"/cam-dashboard \
+           "$BIN"/cam-recovery-test "$BIN"/cam-help "$BIN"/cam-dashboard "$BIN"/cam-health \
            "$BIN"/findcam "$BIN"/camip
 
 echo "== remove the netplan camera-alias pin =="
@@ -61,7 +63,7 @@ if [ -f /etc/netplan/99-rovimen-cam.yaml ]; then
 fi
 
 echo "== remove library + runtime =="
-sudo rm -rf "$LIB" /dev/shm/rovimen-cam-hls
+sudo rm -rf "$LIB" /dev/shm/rovimen-cam-hls /var/lib/rovimen-cam
 
 if [ "$PURGE" -eq 1 ]; then
     sudo rm -rf "$ETC"

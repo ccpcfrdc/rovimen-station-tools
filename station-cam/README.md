@@ -225,6 +225,58 @@ tailnet interface) or reach it through your SSH/Cloudflare tunnel:
 ssh -N -L 8080:127.0.0.1:8080 station    # then open http://127.0.0.1:8080
 ```
 
+## Video-freeze watchdog (`cam-health`)
+
+XM cameras occasionally **freeze on the video side** — the control plane stays
+alive (ping, DVRIP, RTSP handshake all fine) while the encoded stream stops
+advancing, so RMS silently records nothing until the next reboot. `cam-health`
+catches that.
+
+It detects a freeze from **RMS's own output**, never by opening a second RTSP
+session — so the capture stream RMS/GMN depend on is never disturbed. RMS writes
+an FF file to its `CapturedFiles` directory roughly every 256 frames (~10 s at
+25 fps); if RMS is capturing but no fresh FF has appeared for a while, the camera's
+video pipeline has wedged. Per camera:
+
+| state | meaning |
+|-------|---------|
+| `OK` | RMS is capturing and FF files are advancing |
+| `FROZEN` | RMS is capturing but frames stalled (`stale_after_s`) — the freeze case |
+| `STARTING` | RMS just began capturing (startup grace window) |
+| `IDLE` | RMS is not capturing this camera now — nothing to judge |
+| `NO-RMS` | no RMS station maps to this camera's IP |
+
+```bash
+sudo cam-health              # report (exit 1 if any camera is FROZEN)
+sudo cam-health --reboot     # report + power-cycle frozen cameras (cooldown-limited)
+sudo cam-health --json       # machine-readable
+```
+
+A reboot fires **only on positive evidence** (RMS running *and* frames stalled),
+so a station with RMS stopped is never rebooted. Reboots are cooldown-limited
+(default: max one per camera per 15 min, at most two per hour) via a small state
+file at `/var/lib/rovimen-cam/cam-health.json`. Enable the periodic watchdog
+(opt-in, off by default):
+
+```bash
+sudo systemctl enable --now cam-health.timer   # checks ~every 4 min, reboots frozen
+```
+
+Tunables live in an optional `rms` block in `config.json` (all have defaults, so
+no edit is needed for the standard RMS layout):
+
+```json
+"rms": {
+  "user": "rms",
+  "config_globs": ["~/source/Stations/*/.config", "~/source/RMS/.config"],
+  "stale_after_s": 60, "startup_grace_s": 120,
+  "reboot": {"cooldown_s": 900, "max_per_hour": 2}
+}
+```
+
+`cam-health` finds each camera's RMS station by matching the RTSP IP in the
+station's `.config` `device` line against the cameras in `config.json`.
+
 ## Add a camera
 
 Easiest — `cam-add` writes the config entry and enforces it for you:

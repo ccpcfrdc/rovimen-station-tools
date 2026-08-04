@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the station-cam video-freeze watchdog periodically
+
+[Timer]
+# First check a few minutes after boot (RMS/capture has settled), then every 4 min.
+OnBootSec=5min
+OnUnitActiveSec=4min
+AccuracySec=30s
+Unit=cam-health.service
+
+[Install]
+WantedBy=timers.target

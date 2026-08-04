@@ -108,6 +108,10 @@ sudo chmod 0755 "$BIN/cam-help"
 printf '#!/bin/sh\nexec %s/.venv/bin/python %s/cam_dashboard.py "$@"\n' "$LIB" "$LIB" \
     | sudo tee "$BIN/cam-dashboard" >/dev/null
 sudo chmod 0755 "$BIN/cam-dashboard"
+# cam-health = video-freeze watchdog (RMS-output driven; also an opt-in timer)
+printf '#!/bin/sh\nexec %s/.venv/bin/python %s/cam_health.py "$@"\n' "$LIB" "$LIB" \
+    | sudo tee "$BIN/cam-health" >/dev/null
+sudo chmod 0755 "$BIN/cam-health"
 
 echo "== config -> $ETC/ =="
 # profiles.json is delivered by the repo — always refreshed from it
@@ -198,9 +202,11 @@ fi
 echo "== systemd units =="
 sudo cp "$SRC"/services/*.service /etc/systemd/system/
 [ -n "$(ls "$SRC"/services/*.path 2>/dev/null)" ] && sudo cp "$SRC"/services/*.path /etc/systemd/system/
+[ -n "$(ls "$SRC"/services/*.timer 2>/dev/null)" ] && sudo cp "$SRC"/services/*.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable cam-net.service cam-enforce.service
-# cam-sync.path (auto-apply profiles when config.json changes) is OPT-IN.
+# cam-sync.path (auto-apply profiles on config change) and cam-health.timer
+# (video-freeze watchdog) are OPT-IN — enable them per station when wanted.
 
 echo "== done =="
 echo "Run 'cam-help' for the full command reference."
@@ -212,3 +218,4 @@ echo "  sudo cam-profiles-update --apply   # show delivered profiles + push them
 echo "  sudo cam-reboot          # reboot every camera in config"
 echo "  sudo systemctl enable --now cam-sync.path    # (optional) auto cam-sync on config change"
 echo "  sudo systemctl enable --now cam-dashboard    # (optional) local web view of the cameras"
+echo "  sudo systemctl enable --now cam-health.timer # (optional) reboot a camera if RMS capture freezes"

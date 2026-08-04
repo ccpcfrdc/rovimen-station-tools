@@ -1,0 +1,10 @@
+[Unit]
+Description=station-cam video-freeze watchdog (RMS-output driven; reboots frozen cameras)
+After=network-online.target cam-net.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# --reboot: power-cycle a camera only when RMS is capturing but its frames have
+# stalled (positive evidence of a freeze), with a per-camera cooldown.
+ExecStart=/usr/local/lib/rovimen-cam/.venv/bin/python /usr/local/lib/rovimen-cam/cam_health.py --reboot
