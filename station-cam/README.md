@@ -68,6 +68,7 @@ Installs to:
 | CLI wrappers | `/usr/local/bin/cam-{net,enforce,sync,profiles-update,reboot,find,ip,recovery-test,help,dashboard}` |
 | `config/config.example.json` | `/etc/rovimen-cam/config.json` (station cameras, only if absent) |
 | `services/*` | `/etc/systemd/system/` (run as root) |
+| generated | `/etc/netplan/99-rovimen-cam.yaml` — pins the camera alias so systemd-networkd keeps it across DHCP renews / networkd restarts (Ubuntu/netplan only) |
 
 ## Uninstall
 

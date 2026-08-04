@@ -54,6 +54,12 @@ sudo rm -f "$BIN"/cam-net "$BIN"/cam-enforce "$BIN"/cam-sync "$BIN"/cam-profiles
            "$BIN"/cam-recovery-test "$BIN"/cam-help "$BIN"/cam-dashboard \
            "$BIN"/findcam "$BIN"/camip
 
+echo "== remove the netplan camera-alias pin =="
+if [ -f /etc/netplan/99-rovimen-cam.yaml ]; then
+    sudo rm -f /etc/netplan/99-rovimen-cam.yaml
+    if command -v netplan >/dev/null 2>&1; then sudo netplan apply 2>/dev/null || true; fi
+fi
+
 echo "== remove library + runtime =="
 sudo rm -rf "$LIB" /dev/shm/rovimen-cam-hls
 

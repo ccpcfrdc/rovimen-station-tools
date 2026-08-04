@@ -104,6 +104,39 @@ fi
 # remove the old delivered-profiles location from earlier installs
 sudo rm -f "$LIB/profiles.json"
 
+echo "== persistent camera alias (netplan) =="
+# Pin the private camera alias in netplan so systemd-networkd keeps it across
+# DHCP renews and networkd restarts (e.g. unattended-upgrades running netplan
+# apply). Without this, a networkd restart flushes the alias cam-net added and
+# the cameras drop off until the next boot. Only on netplan systems (Ubuntu);
+# elsewhere cam-net keeps adding the alias at boot as before.
+read -r IFACE ALIAS PREFIX <<EOF
+$(python3 - "$ETC/config.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); n = d.get("network", {})
+print(d.get("iface", "eno1"), n.get("alias_ip", "10.42.0.1"), n.get("prefix", 24))
+PY
+)
+EOF
+NP=/etc/netplan/99-rovimen-cam.yaml
+if command -v netplan >/dev/null 2>&1 && ip link show "$IFACE" >/dev/null 2>&1; then
+    printf '# station-cam: persist the private camera alias (mirrors config.json).\n# systemd-networkd keeps it across DHCP renews / networkd restarts.\nnetwork:\n  version: 2\n  ethernets:\n    %s:\n      addresses: [%s/%s]\n' \
+        "$IFACE" "$ALIAS" "$PREFIX" | sudo tee "$NP" >/dev/null
+    sudo chmod 600 "$NP"
+    if sudo netplan generate 2>/dev/null; then
+        sudo netplan apply 2>/dev/null \
+            && echo "  pinned $ALIAS/$PREFIX on $IFACE (survives networkd restarts)" \
+            || echo "  WARN: 'netplan apply' failed — cam-net still adds the alias at boot" >&2
+    else
+        echo "  WARN: netplan rejected $NP — removing it; cam-net adds the alias at boot" >&2
+        sudo rm -f "$NP"
+    fi
+elif command -v netplan >/dev/null 2>&1; then
+    echo "  iface '$IFACE' not present yet — set the right iface in config.json and re-run install.sh"
+else
+    echo "  no netplan here — cam-net adds the camera alias at boot (no change needed)"
+fi
+
 echo "== systemd units =="
 sudo cp "$SRC"/services/*.service /etc/systemd/system/
 [ -n "$(ls "$SRC"/services/*.path 2>/dev/null)" ] && sudo cp "$SRC"/services/*.path /etc/systemd/system/
